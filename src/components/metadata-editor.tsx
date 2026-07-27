@@ -37,8 +37,10 @@ function MetadataEntry({ label, value }: { label: string; value: unknown }) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="shrink-0 text-xs font-medium">{label}</span>
-      <Badge variant="secondary" className="min-w-0 max-w-full justify-start truncate">
+      <Badge variant="default" className="shrink-0">
+        {label}
+      </Badge>
+      <Badge variant="outline" className="min-w-0 max-w-full justify-start truncate border-neutral-200 bg-white text-neutral-900">
         {String(value)}
       </Badge>
     </div>
@@ -73,7 +75,7 @@ function MetadataValue({ value }: { value: unknown }) {
   }
 
   return (
-    <Badge variant="secondary" className="max-w-full truncate">
+    <Badge variant="outline" className="max-w-full truncate border-neutral-200 bg-white text-neutral-900">
       {String(value)}
     </Badge>
   );
