@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AlertCircle, Check, CheckCheck, Paperclip, Send } from "lucide-react";
+import { AlertCircle, Check, CheckCheck, HelpCircle, Paperclip, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,37 @@ import type { MessageDocument, MessageType, Queue, TicketDetail } from "@/types/
 // A Cloud API mantém o indicador "digitando..." ativo por ~25s — reenviar a
 // cada 8s enquanto o atendente digita mantém aceso sem virar spam de request.
 const TYPING_THROTTLE_MS = 8000;
+
+const MB = 1024 * 1024;
+
+// Limites oficiais da Meta Cloud API — passar disso faz o envio ser
+// rejeitado na hora de chamar a Graph API (ver Outbound-Worker).
+const MEDIA_LIMITS: Record<"IMAGE" | "AUDIO" | "DOCUMENT", { label: string; maxSizeMb: number }> = {
+  IMAGE: { label: "Imagem (JPEG, PNG)", maxSizeMb: 5 },
+  AUDIO: { label: "Áudio (AAC, MP3, M4A, OGG/Opus, AMR)", maxSizeMb: 16 },
+  DOCUMENT: { label: "Documento (PDF, Word, Excel, PowerPoint, TXT)", maxSizeMb: 100 },
+};
+
+// Tipos de documento que a Meta efetivamente aceita — qualquer outro (zip,
+// exe, vídeo, etc.) é rejeitado pela Graph API antes de chegar no cliente.
+const SUPPORTED_DOCUMENT_MIME_TYPES: Record<string, string> = {
+  "text/plain": ".txt",
+  "application/pdf": ".pdf",
+  "application/msword": ".doc",
+  "application/vnd.ms-excel": ".xls",
+  "application/vnd.ms-powerpoint": ".ppt",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+};
+
+// file.type vem vazio/genérico em alguns SOs pra certas extensões — cai pra
+// checar a extensão do nome do arquivo antes de recusar.
+function isSupportedDocument(file: File): boolean {
+  if (SUPPORTED_DOCUMENT_MIME_TYPES[file.type]) return true;
+  const extension = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+  return Object.values(SUPPORTED_DOCUMENT_MIME_TYPES).includes(extension);
+}
 
 export function TicketChatPage() {
   const { id } = useParams<{ id: string }>();
@@ -115,6 +146,8 @@ export function TicketChatPage() {
       if (error instanceof ApiError && error.code === "SESSION_WINDOW_EXPIRED") {
         setWindowExpired(true);
         toast.error("A janela de 24 horas foi encerrada para esta conversa.");
+      } else if (error instanceof ApiError) {
+        toast.error(error.message);
       } else {
         toast.error("Não foi possível enviar a mensagem.");
       }
@@ -144,6 +177,23 @@ export function TicketChatPage() {
     event.target.value = "";
     if (!file || !id) return;
 
+    const messageType: MessageType = file.type.startsWith("image/")
+      ? "IMAGE"
+      : file.type.startsWith("audio/")
+        ? "AUDIO"
+        : "DOCUMENT";
+
+    if (messageType === "DOCUMENT" && !isSupportedDocument(file)) {
+      toast.error("Tipo de documento não aceito pelo WhatsApp. Veja os formatos suportados no ícone de ajuda ao lado do anexo.");
+      return;
+    }
+
+    const limit = MEDIA_LIMITS[messageType];
+    if (file.size > limit.maxSizeMb * MB) {
+      toast.error(`Arquivo muito grande — o limite da Meta para ${limit.label.toLowerCase()} é ${limit.maxSizeMb} MB.`);
+      return;
+    }
+
     setUploading(true);
     try {
       const { uploadUrl, mediaUrl } = await api.post<{ uploadUrl: string; mediaUrl: string }>("/uploads/presign", {
@@ -152,12 +202,6 @@ export function TicketChatPage() {
       });
 
       await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-
-      const messageType: MessageType = file.type.startsWith("image/")
-        ? "IMAGE"
-        : file.type.startsWith("audio/")
-          ? "AUDIO"
-          : "DOCUMENT";
 
       await sendMessage({ text: file.name, messageType, mediaUrl });
     } catch {
@@ -301,6 +345,32 @@ export function TicketChatPage() {
                   >
                     <Paperclip className="size-4" />
                   </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" aria-label="Limites de anexo">
+                        <HelpCircle className="text-muted-foreground size-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Limites de anexo do WhatsApp</DialogTitle>
+                        <DialogDescription>
+                          Definidos pela Meta — arquivos fora desses limites ou de tipo não suportado não são
+                          entregues ao cliente.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex flex-col gap-3 text-sm">
+                        {Object.entries(MEDIA_LIMITS).map(([type, info]) => (
+                          <div key={type} className="flex items-center justify-between gap-4">
+                            <span>{info.label}</span>
+                            <Badge variant="secondary" className="shrink-0">
+                              até {info.maxSizeMb} MB
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   <Textarea
                     className="min-h-10 flex-1 resize-none"
                     placeholder="Digite uma mensagem..."
