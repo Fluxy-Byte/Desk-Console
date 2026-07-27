@@ -56,6 +56,7 @@ export interface MessageDocument {
   text?: string;
   mediaUrl?: string;
   mediaCaption?: string;
+  waStatus?: "sent" | "delivered" | "read" | "failed";
   createdAt: string;
 }
 

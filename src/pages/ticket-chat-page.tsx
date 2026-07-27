@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Paperclip, Send } from "lucide-react";
+import { AlertCircle, Check, CheckCheck, Paperclip, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,10 @@ import { ApiError, api } from "@/lib/api";
 import { useRealtimeEvent } from "@/lib/realtime";
 import { useAppSelector } from "@/store/hooks";
 import type { MessageDocument, MessageType, Queue, TicketDetail } from "@/types/domain";
+
+// A Cloud API mantém o indicador "digitando..." ativo por ~25s — reenviar a
+// cada 8s enquanto o atendente digita mantém aceso sem virar spam de request.
+const TYPING_THROTTLE_MS = 8000;
 
 export function TicketChatPage() {
   const { id } = useParams<{ id: string }>();
@@ -52,11 +56,20 @@ export function TicketChatPage() {
   // reconciliação server-side do Desk-Worker).
   const [pendingMessages, setPendingMessages] = useState<MessageDocument[]>([]);
   const lastHistoryLengthRef = useRef(0);
+  const lastTypingSentAtRef = useRef(0);
 
   useRealtimeEvent((event) => {
     if (event.type === "ticket_message" && event.ticketId === id) mutate();
     if (event.type === "ticket_updated" && event.ticketId === id) mutate();
+    if (event.type === "message_status" && event.ticketId === id) mutate();
   });
+
+  // Marca a última mensagem do cliente como lida assim que o atendente abre
+  // o ticket — fire-and-forget, não bloqueia a tela nem precisa de feedback.
+  useEffect(() => {
+    if (!id) return;
+    api.post(`/tickets/${id}/read`).catch(() => {});
+  }, [id]);
 
   useEffect(() => {
     const currentLength = ticket?.history.length ?? 0;
@@ -114,6 +127,16 @@ export function TicketChatPage() {
     event.preventDefault();
     if (!text.trim()) return;
     await sendMessage({ text: text.trim() });
+  }
+
+  function handleTextChange(value: string) {
+    setText(value);
+    if (!id || !value.trim()) return;
+
+    const now = Date.now();
+    if (now - lastTypingSentAtRef.current < TYPING_THROTTLE_MS) return;
+    lastTypingSentAtRef.current = now;
+    api.post(`/tickets/${id}/typing`).catch(() => {});
   }
 
   async function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
@@ -282,7 +305,7 @@ export function TicketChatPage() {
                     className="min-h-10 flex-1 resize-none"
                     placeholder="Digite uma mensagem..."
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(e) => handleTextChange(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -322,14 +345,28 @@ function MessageBubble({ message, pending }: { message: MessageDocument; pending
         }`}
       >
         <MessageContent message={message} />
-        <p className={`mt-1 text-[10px] ${isCustomer ? "text-muted-foreground" : "text-primary-foreground/70"}`}>
+        <p
+          className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${isCustomer ? "text-muted-foreground" : "text-primary-foreground/70"}`}
+        >
           {pending ? "enviando..." : format(new Date(message.createdAt), "HH:mm", { locale: ptBR })}
           {message.senderType === "SYSTEM" && " · sistema"}
           {message.senderType === "AGENT_AI" && " · IA"}
+          {!isCustomer && !pending && <MessageStatusTick status={message.waStatus} />}
         </p>
       </div>
     </div>
   );
+}
+
+/// Tiques no estilo WhatsApp: 1 cinza = enviada, 2 cinza = entregue,
+/// 2 azul = lida, alerta vermelho = falhou. Sem waStatus (mensagens de
+/// sistema/antigas) não desenha nada.
+function MessageStatusTick({ status }: { status?: "sent" | "delivered" | "read" | "failed" }) {
+  if (!status) return null;
+  if (status === "failed") return <AlertCircle className="text-destructive size-3" />;
+  if (status === "read") return <CheckCheck className="size-3 text-sky-400" />;
+  if (status === "delivered") return <CheckCheck className="size-3 opacity-80" />;
+  return <Check className="size-3 opacity-80" />;
 }
 
 function MessageContent({ message }: { message: MessageDocument }) {
