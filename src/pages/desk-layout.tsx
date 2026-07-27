@@ -5,6 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
+import fluxyLogo from "@/assets/Logo.png";
 import { Button } from "@/components/ui/button";
 import { ApiError, api } from "@/lib/api";
 import { authStorage } from "@/lib/auth-storage";
@@ -85,7 +86,10 @@ export function DeskLayout() {
     <div className="bg-dot-grid flex h-screen">
       <aside className="bg-sidebar-gradient border-border flex w-72 shrink-0 flex-col border-r">
         <div className="border-border flex items-center justify-between border-b px-4 py-3">
-          <h1 className="font-[family-name:var(--font-display)] text-lg font-semibold">Desk</h1>
+          <div className="flex items-center gap-2">
+            <img src={fluxyLogo} alt="Fluxy" className="size-6 rounded-md" />
+            <h1 className="font-[family-name:var(--font-display)] text-lg font-semibold">Fluxy Desk</h1>
+          </div>
           <Button variant="ghost" size="icon" aria-label="Sair" onClick={handleLogout}>
             <LogOut className="size-4" />
           </Button>

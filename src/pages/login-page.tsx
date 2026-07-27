@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import capaImage from "@/assets/Capa.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -75,55 +76,61 @@ export function LoginPage() {
   }
 
   return (
-    <div className="bg-dot-grid flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Desk Console</CardTitle>
-          <CardDescription>Atendimento humano em tempo real.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {companies ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-muted-foreground text-sm">Selecione a empresa:</p>
-              {companies.map((c) => (
-                <Button key={c.id} variant="outline" disabled={loading} onClick={() => handlePickCompany(c.id)}>
-                  {c.name}
+    <div className="flex min-h-screen">
+      <div className="hidden lg:block lg:w-1/2">
+        <img src={capaImage} alt="Fluxy Desk" className="h-full w-full object-cover" />
+      </div>
+
+      <div className="bg-dot-grid flex flex-1 items-center justify-center p-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>Fluxy Desk</CardTitle>
+            <CardDescription>Atendimento humano em tempo real.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {companies ? (
+              <div className="flex flex-col gap-2">
+                <p className="text-muted-foreground text-sm">Selecione a empresa:</p>
+                {companies.map((c) => (
+                  <Button key={c.id} variant="outline" disabled={loading} onClick={() => handlePickCompany(c.id)}>
+                    {c.name}
+                  </Button>
+                ))}
+                {error && <p className="text-destructive text-sm">{error}</p>}
+              </div>
+            ) : (
+              <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                {error && <p className="text-destructive text-sm">{error}</p>}
+                <Button type="submit" disabled={loading} className="mt-2">
+                  {loading ? "Entrando..." : "Entrar"}
                 </Button>
-              ))}
-              {error && <p className="text-destructive text-sm">{error}</p>}
-            </div>
-          ) : (
-            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="password">Senha</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-destructive text-sm">{error}</p>}
-              <Button type="submit" disabled={loading} className="mt-2">
-                {loading ? "Entrando..." : "Entrar"}
-              </Button>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
