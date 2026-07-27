@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { formatDistanceToNow } from "date-fns";
@@ -24,14 +24,33 @@ export function DeskLayout() {
   const activeTicketId = location.pathname.match(/^\/tickets\/([^/]+)/)?.[1];
 
   const [pulling, setPulling] = useState(false);
+  // Ticket recebeu mensagem nova enquanto o atendente não estava com a
+  // conversa aberta — só estado de UI (não persiste), some assim que o
+  // ticket em questão é aberto.
+  const [unreadTicketIds, setUnreadTicketIds] = useState<Set<string>>(new Set());
 
   const { data: waiting, mutate: mutateWaiting } = useSWR<Ticket[]>("/tickets?status=waiting");
   const { data: mine, mutate: mutateMine } = useSWR<Ticket[]>("/tickets?status=mine");
 
-  useRealtimeEvent(() => {
+  useRealtimeEvent((event) => {
     mutateWaiting();
     mutateMine();
+
+    if (event.type === "ticket_message" && event.ticketId && event.ticketId !== activeTicketId) {
+      const ticketId = event.ticketId;
+      setUnreadTicketIds((prev) => (prev.has(ticketId) ? prev : new Set(prev).add(ticketId)));
+    }
   });
+
+  useEffect(() => {
+    if (!activeTicketId) return;
+    setUnreadTicketIds((prev) => {
+      if (!prev.has(activeTicketId)) return prev;
+      const next = new Set(prev);
+      next.delete(activeTicketId);
+      return next;
+    });
+  }, [activeTicketId]);
 
   async function handlePullNext() {
     const next = waiting?.[0];
@@ -83,26 +102,34 @@ export function DeskLayout() {
 
         <div className="flex-1 overflow-y-auto">
           <p className="text-muted-foreground px-4 pt-3 pb-1 text-xs font-medium tracking-wide uppercase">Meus tickets</p>
-          {mine?.map((ticket) => (
-            <button
-              key={ticket.id}
-              onClick={() => navigate(`/tickets/${ticket.id}`)}
-              className={cn(
-                "hover:bg-sidebar-accent flex w-full flex-col items-start gap-0.5 border-b border-transparent px-4 py-3 text-left transition-colors",
-                activeTicketId === ticket.id && "bg-sidebar-accent",
-              )}
-            >
-              <span className="w-full truncate text-sm font-medium">
-                {ticket.target?.name || ticket.target?.waId || "Contato"}
-              </span>
-              <span className="text-muted-foreground w-full truncate text-xs">
-                #{ticket.ticketNumber} · {ticket.queue?.name}
-              </span>
-              <span className="text-muted-foreground text-[11px]">
-                {formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true, locale: ptBR })}
-              </span>
-            </button>
-          ))}
+          {mine?.map((ticket) => {
+            const isUnread = unreadTicketIds.has(ticket.id);
+            return (
+              <button
+                key={ticket.id}
+                onClick={() => navigate(`/tickets/${ticket.id}`)}
+                className={cn(
+                  "hover:bg-sidebar-accent flex w-full flex-col items-start gap-0.5 border-b border-transparent px-4 py-3 text-left transition-colors",
+                  activeTicketId === ticket.id && "bg-sidebar-accent",
+                )}
+              >
+                <span className="flex w-full items-center gap-1.5">
+                  {isUnread && (
+                    <span className="bg-primary size-2 shrink-0 rounded-full" aria-label="Mensagem não lida" />
+                  )}
+                  <span className={cn("truncate text-sm", isUnread ? "text-foreground font-semibold" : "font-medium")}>
+                    {ticket.target?.name || ticket.target?.waId || "Contato"}
+                  </span>
+                </span>
+                <span className="text-muted-foreground w-full truncate text-xs">
+                  #{ticket.ticketNumber} · {ticket.queue?.name}
+                </span>
+                <span className="text-muted-foreground text-[11px]">
+                  {formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true, locale: ptBR })}
+                </span>
+              </button>
+            );
+          })}
           {mine && mine.length === 0 && (
             <p className="text-muted-foreground px-4 py-6 text-center text-xs">Nenhum ticket em atendimento.</p>
           )}
