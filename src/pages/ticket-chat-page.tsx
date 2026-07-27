@@ -374,7 +374,7 @@ export function TicketChatPage() {
                   </Dialog>
                   <Textarea
                     rows={1}
-                    className="h-10 flex-1 resize-none"
+                    className="h-10 min-h-0 flex-1 resize-none"
                     placeholder="Digite uma mensagem..."
                     value={text}
                     onChange={(e) => handleTextChange(e.target.value)}
