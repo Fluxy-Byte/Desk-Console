@@ -1,11 +1,12 @@
 import { type FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import capaImage from "@/assets/Capa.jpg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { ApiError, api } from "@/lib/api";
 import { authStorage } from "@/lib/auth-storage";
 import { useAppDispatch } from "@/store/hooks";
@@ -112,10 +113,14 @@ export function LoginPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="password">Senha</Label>
-                  <Input
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Senha</Label>
+                    <Link to="/forgot-password" className="text-primary text-xs font-medium hover:underline">
+                      Esqueceu a senha?
+                    </Link>
+                  </div>
+                  <PasswordInput
                     id="password"
-                    type="password"
                     required
                     autoComplete="current-password"
                     value={password}
