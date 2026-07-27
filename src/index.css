@@ -126,6 +126,10 @@
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "cv11", "ss01";
   }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
 }
 
 .bg-dot-grid {
