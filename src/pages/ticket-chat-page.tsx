@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError, api } from "@/lib/api";
@@ -75,6 +76,12 @@ export function TicketChatPage() {
   const [windowExpired, setWindowExpired] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [loadingCloseTags, setLoadingCloseTags] = useState(false);
+  const [closeTags, setCloseTags] = useState<{ id: string; name: string }[]>([]);
+  const [requireCloseTag, setRequireCloseTag] = useState(false);
+  const [selectedCloseTagId, setSelectedCloseTagId] = useState<string | undefined>(undefined);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -211,14 +218,37 @@ export function TicketChatPage() {
     }
   }
 
+  async function openCloseDialog() {
+    setSelectedCloseTagId(undefined);
+    setCloseOpen(true);
+    if (!id) return;
+    setLoadingCloseTags(true);
+    try {
+      const result = await api.get<{ requireCloseTag: boolean; tags: { id: string; name: string }[] }>(
+        `/tickets/${id}/close-tags`,
+      );
+      setRequireCloseTag(result.requireCloseTag);
+      setCloseTags(result.tags);
+    } catch {
+      setRequireCloseTag(false);
+      setCloseTags([]);
+    } finally {
+      setLoadingCloseTags(false);
+    }
+  }
+
   async function handleClose() {
     if (!id) return;
+    if (requireCloseTag && !selectedCloseTagId) return;
+    setClosing(true);
     try {
-      await api.post(`/tickets/${id}/close`);
+      await api.post(`/tickets/${id}/close`, { closeTagId: selectedCloseTagId });
       toast.success("Ticket encerrado.");
       navigate("/");
-    } catch {
-      toast.error("Não foi possível encerrar o ticket.");
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : "Não foi possível encerrar o ticket.");
+    } finally {
+      setClosing(false);
     }
   }
 
@@ -304,9 +334,61 @@ export function TicketChatPage() {
             </div>
           </DialogContent>
         </Dialog>
-        <Button variant="destructive" size="sm" onClick={handleClose}>
-          Encerrar
-        </Button>
+        <Dialog open={closeOpen} onOpenChange={(open) => (open ? openCloseDialog() : setCloseOpen(false))}>
+          <DialogTrigger asChild>
+            <Button variant="destructive" size="sm">
+              Encerrar
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Encerrar ticket</DialogTitle>
+              <DialogDescription>
+                {requireCloseTag
+                  ? "Esta ilha exige uma tag de fechamento para encerrar o ticket."
+                  : "Confirme o encerramento deste ticket."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-4">
+              {loadingCloseTags ? (
+                <p className="text-muted-foreground text-sm">Carregando tags…</p>
+              ) : (
+                closeTags.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs">
+                      Tag de fechamento {requireCloseTag ? "(obrigatória)" : "(opcional)"}
+                    </Label>
+                    <Select value={selectedCloseTagId} onValueChange={setSelectedCloseTagId}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione uma tag..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {closeTags.map((tag) => (
+                          <SelectItem key={tag.id} value={tag.id}>
+                            {tag.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )
+              )}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => setCloseOpen(false)} disabled={closing}>
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleClose}
+                  disabled={closing || loadingCloseTags || (requireCloseTag && !selectedCloseTagId)}
+                >
+                  {closing ? "Encerrando…" : "Confirmar encerramento"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </header>
 
       <div className="flex min-h-0 flex-1">
