@@ -113,11 +113,9 @@ export function MetadataEditor({ targetId, metadata, onUpdated }: MetadataEditor
   }
 
   async function handleRemove(key: string) {
-    // Merge no backend só soma/sobrescreve — remoção precisa mandar undefined
-    // explicitamente não é suportado pelo merge raso, então marcamos como
-    // string vazia (o mais próximo de "removido" sem mudar o contrato do
-    // backend). Documentado aqui por ser uma limitação conhecida.
-    await save({ [key]: "" });
+    // null é o sinal que o backend interpreta como "remover esta chave" do
+    // merge raso (ver updateTargetContact em Desk-API/ticket-service.ts).
+    await save({ [key]: null });
   }
 
   return (
