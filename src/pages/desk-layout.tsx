@@ -3,10 +3,9 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { LogOut, Send } from "lucide-react";
+import { History, LogOut, Send } from "lucide-react";
 import { toast } from "sonner";
 import fluxyLogo from "@/assets/Logo.png";
-import { ActiveDispatchDialog } from "@/components/active-dispatch-dialog";
 import { Button } from "@/components/ui/button";
 import { ApiError, api } from "@/lib/api";
 import { authStorage } from "@/lib/auth-storage";
@@ -120,9 +119,14 @@ export function DeskLayout() {
             <img src={fluxyLogo} alt="Fluxy" className="size-6 rounded-md" />
             <h1 className="font-[family-name:var(--font-display)] text-lg font-semibold">Fluxy Desk</h1>
           </div>
-          <Button variant="ghost" size="icon" aria-label="Sair" onClick={handleLogout}>
-            <LogOut className="size-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" aria-label="Histórico" onClick={() => navigate("/history")}>
+              <History className="size-4" />
+            </Button>
+            <Button variant="ghost" size="icon" aria-label="Sair" onClick={handleLogout}>
+              <LogOut className="size-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="border-border flex items-center justify-between gap-2 border-b px-4 py-2.5">
@@ -154,14 +158,9 @@ export function DeskLayout() {
             {pulling ? "Puxando..." : "Puxar ticket"}
           </Button>
           {dispatchQueues.length > 0 && (
-            <ActiveDispatchDialog
-              queues={dispatchQueues}
-              trigger={
-                <Button className="w-full" variant="outline">
-                  <Send className="size-4" /> Novo disparo
-                </Button>
-              }
-            />
+            <Button className="w-full" variant="outline" onClick={() => navigate("/dispatch/new")}>
+              <Send className="size-4" /> Novo disparo
+            </Button>
           )}
         </div>
 

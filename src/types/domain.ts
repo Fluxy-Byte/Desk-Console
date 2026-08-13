@@ -17,18 +17,32 @@ export interface Target {
   metadata: Record<string, unknown> | null;
 }
 
-export interface DispatchTemplate {
+export interface TemplateComponent {
+  type: "HEADER" | "BODY" | "FOOTER" | "BUTTONS";
+  format?: string;
+  text?: string;
+  buttons?: { type: string; text: string }[];
+}
+
+export interface Template {
+  id: string;
   name: string;
-  language: string;
   category: string;
-  headerText: string | null;
-  bodyText: string | null;
+  language: string;
+  status: string;
+  components: TemplateComponent[];
+  variableCount: { header: number; body: number };
 }
 
 export interface MessagingSession {
   id: string;
   lastCustomerMessageAt: string;
   lastAttendantMessageAt: string | null;
+}
+
+export interface TicketCloseTag {
+  id: string;
+  name: string;
 }
 
 export interface Ticket {
@@ -45,6 +59,17 @@ export interface Ticket {
   assignedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  closedAt?: string | null;
+  closeTag?: TicketCloseTag | null;
+  waitDurationMs?: number | null;
+  handlingDurationMs?: number | null;
+}
+
+export interface TicketListResult {
+  items: Ticket[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 export interface TicketMessage {

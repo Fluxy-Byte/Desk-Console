@@ -1,12 +1,14 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useBootstrapSession } from "@/hooks/use-bootstrap-session";
 import { RealtimeProvider } from "@/lib/realtime";
+import { ActiveDispatchPage } from "@/pages/active-dispatch-page";
 import { DeskLayout } from "@/pages/desk-layout";
 import { EmptyTicketPage } from "@/pages/empty-ticket-page";
 import { ForgotPasswordPage } from "@/pages/forgot-password-page";
 import { LoginPage } from "@/pages/login-page";
 import { ResetPasswordPage } from "@/pages/reset-password-page";
 import { TicketChatPage } from "@/pages/ticket-chat-page";
+import { TicketHistoryPage } from "@/pages/ticket-history-page";
 import { RedirectIfAuthenticated, RequireAuth } from "@/routes/require-auth";
 
 export function App() {
@@ -40,6 +42,8 @@ export function App() {
           <Route element={<DeskLayout />}>
             <Route path="/" element={<EmptyTicketPage />} />
             <Route path="/tickets/:id" element={<TicketChatPage />} />
+            <Route path="/dispatch/new" element={<ActiveDispatchPage />} />
+            <Route path="/history" element={<TicketHistoryPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
