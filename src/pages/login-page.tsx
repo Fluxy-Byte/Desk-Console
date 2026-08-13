@@ -10,7 +10,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { ApiError, api } from "@/lib/api";
 import { authStorage } from "@/lib/auth-storage";
 import { useAppDispatch } from "@/store/hooks";
-import { setSession } from "@/store/slices/auth-slice";
+import { setSession, type AttendantStatus } from "@/store/slices/auth-slice";
 
 interface LoginResult {
   token?: string;
@@ -24,6 +24,7 @@ interface MeResult {
   user: { id: string; name: string; email: string };
   companyId: string;
   queueIds: string[];
+  status: AttendantStatus;
 }
 
 export function LoginPage() {
@@ -40,7 +41,7 @@ export function LoginPage() {
     const me = await api.get<MeResult>("/me");
     authStorage.setUser(me.user);
     authStorage.setCompanyId(me.companyId);
-    dispatch(setSession({ user: me.user, companyId: me.companyId, queueIds: me.queueIds }));
+    dispatch(setSession({ user: me.user, companyId: me.companyId, queueIds: me.queueIds, attendantStatus: me.status }));
     navigate("/", { replace: true });
   }
 

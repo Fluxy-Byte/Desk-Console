@@ -6,6 +6,7 @@ export interface Queue {
   serviceIslandId: string;
   name: string;
   members?: { id: string; userId: string; user: { id: string; name: string; email: string } }[];
+  serviceIsland?: { id: string; allowActiveDispatch: boolean; whatsappChannelId: string };
 }
 
 export interface Target {
@@ -14,6 +15,14 @@ export interface Target {
   name: string | null;
   email: string | null;
   metadata: Record<string, unknown> | null;
+}
+
+export interface DispatchTemplate {
+  name: string;
+  language: string;
+  category: string;
+  headerText: string | null;
+  bodyText: string | null;
 }
 
 export interface MessagingSession {

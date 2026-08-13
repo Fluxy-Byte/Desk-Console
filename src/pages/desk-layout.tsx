@@ -3,17 +3,21 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { LogOut } from "lucide-react";
+import { LogOut, Send } from "lucide-react";
 import { toast } from "sonner";
 import fluxyLogo from "@/assets/Logo.png";
+import { ActiveDispatchDialog } from "@/components/active-dispatch-dialog";
 import { Button } from "@/components/ui/button";
 import { ApiError, api } from "@/lib/api";
 import { authStorage } from "@/lib/auth-storage";
 import { useRealtimeEvent } from "@/lib/realtime";
 import { cn } from "@/lib/utils";
-import { useAppDispatch } from "@/store/hooks";
-import { clearSession } from "@/store/slices/auth-slice";
-import type { Ticket } from "@/types/domain";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { clearSession, setAttendantStatus, type AttendantStatus } from "@/store/slices/auth-slice";
+import type { Queue, Ticket } from "@/types/domain";
+
+const STATUS_LABELS: Record<AttendantStatus, string> = { ONLINE: "Online", PAUSED: "Pausa", OFFLINE: "Offline" };
+const STATUS_DOT: Record<AttendantStatus, string> = { ONLINE: "bg-emerald-500", PAUSED: "bg-amber-500", OFFLINE: "bg-muted-foreground" };
 
 /// Shell no estilo WhatsApp: lista de tickets (contatos) fixa à esquerda,
 /// conteúdo do ticket selecionado (chat + metadados) no <Outlet/>. Sem página
@@ -24,6 +28,11 @@ export function DeskLayout() {
   const location = useLocation();
   const activeTicketId = location.pathname.match(/^\/tickets\/([^/]+)/)?.[1];
 
+  const currentUserId = useAppSelector((s) => s.auth.user?.id);
+  const userName = useAppSelector((s) => s.auth.user?.name);
+  const attendantStatus = useAppSelector((s) => s.auth.attendantStatus);
+  const [changingStatus, setChangingStatus] = useState(false);
+
   const [pulling, setPulling] = useState(false);
   // Ticket recebeu mensagem nova enquanto o atendente não estava com a
   // conversa aberta — só estado de UI (não persiste), some assim que o
@@ -32,8 +41,16 @@ export function DeskLayout() {
 
   const { data: waiting, mutate: mutateWaiting } = useSWR<Ticket[]>("/tickets?status=waiting");
   const { data: mine, mutate: mutateMine } = useSWR<Ticket[]>("/tickets?status=mine");
+  const { data: queues } = useSWR<Queue[]>("/queues");
+  const dispatchQueues = queues?.filter((q) => q.serviceIsland?.allowActiveDispatch) ?? [];
 
   useRealtimeEvent((event) => {
+    if (event.type === "attendant_status_changed") {
+      const payload = event.payload as { userId: string; status: AttendantStatus } | undefined;
+      if (payload && payload.userId === currentUserId) dispatch(setAttendantStatus(payload.status));
+      return;
+    }
+
     mutateWaiting();
     mutateMine();
 
@@ -80,6 +97,19 @@ export function DeskLayout() {
     navigate("/login", { replace: true });
   }
 
+  async function handleStatusChange(status: "ONLINE" | "PAUSED") {
+    if (status === attendantStatus || changingStatus) return;
+    setChangingStatus(true);
+    try {
+      await api.post("/me/status", { status });
+      dispatch(setAttendantStatus(status));
+    } catch {
+      toast.error("Não foi possível atualizar o status.");
+    } finally {
+      setChangingStatus(false);
+    }
+  }
+
   const waitingCount = waiting?.length ?? 0;
 
   return (
@@ -95,6 +125,27 @@ export function DeskLayout() {
           </Button>
         </div>
 
+        <div className="border-border flex items-center justify-between gap-2 border-b px-4 py-2.5">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <span className={cn("size-2 shrink-0 rounded-full", STATUS_DOT[attendantStatus])} />
+            <span className="truncate text-sm font-medium">{userName ?? "Atendente"}</span>
+          </div>
+          <div className="flex shrink-0 gap-1">
+            {(["ONLINE", "PAUSED"] as const).map((status) => (
+              <Button
+                key={status}
+                type="button"
+                size="sm"
+                variant={attendantStatus === status ? "default" : "outline"}
+                disabled={changingStatus}
+                onClick={() => handleStatusChange(status)}
+              >
+                {STATUS_LABELS[status]}
+              </Button>
+            ))}
+          </div>
+        </div>
+
         <div className="border-border flex flex-col items-center gap-2 border-b p-4">
           <p className="text-muted-foreground text-xs">
             {waitingCount} ticket{waitingCount === 1 ? "" : "s"} aguardando
@@ -102,6 +153,16 @@ export function DeskLayout() {
           <Button className="w-full" disabled={waitingCount === 0 || pulling} onClick={handlePullNext}>
             {pulling ? "Puxando..." : "Puxar ticket"}
           </Button>
+          {dispatchQueues.length > 0 && (
+            <ActiveDispatchDialog
+              queues={dispatchQueues}
+              trigger={
+                <Button className="w-full" variant="outline">
+                  <Send className="size-4" /> Novo disparo
+                </Button>
+              }
+            />
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto">

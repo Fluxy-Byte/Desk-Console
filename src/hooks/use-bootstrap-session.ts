@@ -2,12 +2,13 @@ import { useEffect } from "react";
 import { ApiError, api } from "../lib/api";
 import { authStorage } from "../lib/auth-storage";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { clearSession, setSession } from "../store/slices/auth-slice";
+import { clearSession, setSession, type AttendantStatus } from "../store/slices/auth-slice";
 
 interface MeResult {
   user: { id: string; name: string; email: string };
   companyId: string;
   queueIds: string[];
+  status: AttendantStatus;
 }
 
 /// Ao carregar o app, valida o token guardado em sessionStorage contra
@@ -26,7 +27,7 @@ export function useBootstrapSession() {
 
       try {
         const me = await api.get<MeResult>("/me");
-        dispatch(setSession({ user: me.user, companyId: me.companyId, queueIds: me.queueIds }));
+        dispatch(setSession({ user: me.user, companyId: me.companyId, queueIds: me.queueIds, attendantStatus: me.status }));
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
           authStorage.clear();

@@ -6,9 +6,10 @@ const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL as string;
 const RECONNECT_DELAY_MS = 3000;
 
 export interface DeskEvent {
-  type: "ticket_new" | "ticket_message" | "ticket_updated" | "message_status" | "connected";
+  type: "ticket_new" | "ticket_message" | "ticket_updated" | "message_status" | "attendant_status_changed" | "connected";
   queueId?: string;
   ticketId?: string;
+  userId?: string;
   payload?: unknown;
 }
 
