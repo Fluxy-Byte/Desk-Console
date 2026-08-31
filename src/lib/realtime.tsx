@@ -28,7 +28,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function connect() {
-      if (cancelled || !authStorage.getToken()) return;
+      if (cancelled) return;
+
+      // Sem token ainda (ex: bootstrap de sessão/login ainda não terminou de
+      // gravar em authStorage) — tenta de novo em vez de desistir pra sempre.
+      // Antes o silêncio aqui era exatamente o motivo do WS nunca conectar
+      // até um refresh manual: nada mais reagendava um retry fora deste
+      // caminho (só onclose/onerror de um socket que nunca chegou a existir).
+      if (!authStorage.getToken()) {
+        reconnectTimer = setTimeout(connect, RECONNECT_DELAY_MS);
+        return;
+      }
 
       try {
         const { token } = await api.get<{ token: string }>("/realtime-token");
