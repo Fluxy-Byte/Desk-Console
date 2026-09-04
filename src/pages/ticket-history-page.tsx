@@ -122,7 +122,7 @@ export function TicketHistoryPage() {
         )}
 
         {result && result.total > 0 && (
-          <div className="border-border flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="border-border mt-auto flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Itens por página</span>
               <Select
