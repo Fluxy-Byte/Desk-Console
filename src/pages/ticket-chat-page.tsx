@@ -436,7 +436,7 @@ export function TicketChatPage() {
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="size-10 shrink-0"
+                    className="size-12 shrink-0"
                     disabled={uploading}
                     onClick={() => fileInputRef.current?.click()}
                   >
@@ -470,7 +470,7 @@ export function TicketChatPage() {
                   </Dialog>
                   <Textarea
                     rows={1}
-                    className="h-10 min-h-0 flex-1 resize-none"
+                    className="h-12 min-h-0 flex-1 resize-none"
                     placeholder="Digite uma mensagem..."
                     value={text}
                     onChange={(e) => handleTextChange(e.target.value)}
@@ -481,7 +481,7 @@ export function TicketChatPage() {
                       }
                     }}
                   />
-                  <Button type="submit" size="icon" className="size-10 shrink-0" disabled={sending || !text.trim()}>
+                  <Button type="submit" size="icon" className="size-12 shrink-0" disabled={sending || !text.trim()}>
                     <Send className="size-4" />
                   </Button>
                 </form>

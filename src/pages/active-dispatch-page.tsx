@@ -5,11 +5,10 @@ import { toast } from "sonner";
 import { ArrowLeft, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ApiError, api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { Queue, Target, Template } from "@/types/domain";
@@ -148,26 +147,28 @@ export function ActiveDispatchPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Fila</CardTitle>
+          <CardDescription>Clique numa fila para escolher onde este disparo será registrado.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-1.5">
-            <Label>Fila</Label>
-            <Select value={queueId} onValueChange={setQueueId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecione uma fila" />
-              </SelectTrigger>
-              <SelectContent>
-                {dispatchQueues.map((q) => (
-                  <SelectItem key={q.id} value={q.id}>
-                    {q.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {dispatchQueues.length === 0 && (
-              <p className="text-muted-foreground text-xs">Nenhuma fila sua tem disparo ativo habilitado.</p>
-            )}
-          </div>
+          {dispatchQueues.length === 0 ? (
+            <p className="text-muted-foreground text-xs">Nenhuma fila sua tem disparo ativo habilitado.</p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {dispatchQueues.map((q) => (
+                <button
+                  type="button"
+                  key={q.id}
+                  onClick={() => setQueueId(q.id)}
+                  className={cn(
+                    "flex cursor-pointer items-center justify-between gap-2 rounded-lg border p-3 text-left transition-colors",
+                    queueId === q.id ? "border-primary bg-accent" : "border-border hover:bg-accent/50",
+                  )}
+                >
+                  <span className="font-medium">{q.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
