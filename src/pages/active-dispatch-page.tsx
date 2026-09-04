@@ -153,18 +153,18 @@ export function ActiveDispatchPage() {
           {dispatchQueues.length === 0 ? (
             <p className="text-muted-foreground text-xs">Nenhuma fila sua tem disparo ativo habilitado.</p>
           ) : (
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="flex flex-wrap gap-2">
               {dispatchQueues.map((q) => (
                 <button
                   type="button"
                   key={q.id}
                   onClick={() => setQueueId(q.id)}
                   className={cn(
-                    "flex cursor-pointer items-center justify-between gap-2 rounded-lg border p-3 text-left transition-colors",
+                    "cursor-pointer rounded-lg border px-4 py-2 text-left font-medium transition-colors",
                     queueId === q.id ? "border-primary bg-accent" : "border-border hover:bg-accent/50",
                   )}
                 >
-                  <span className="font-medium">{q.name}</span>
+                  {q.name}
                 </button>
               ))}
             </div>
@@ -176,6 +176,7 @@ export function ActiveDispatchPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Template</CardTitle>
+            <CardDescription>Escolha o template aprovado pela Meta que será enviado neste disparo.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {templatesError ? (
@@ -213,6 +214,7 @@ export function ActiveDispatchPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Pré-visualização</CardTitle>
+            <CardDescription>Confira como a mensagem vai chegar pro cliente e preencha as variáveis do template.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 sm:flex-row">
             <div className="flex flex-1 items-start justify-center rounded-lg bg-[#e5ddd5] p-6 dark:bg-[#0b141a]">
@@ -233,11 +235,11 @@ export function ActiveDispatchPage() {
             </div>
             <div className="flex flex-1 flex-col gap-3 text-sm">
               <div>
-                <p className="font-medium">
+                <Badge variant="outline" className="border-transparent bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                   {totalVars} variável{totalVars === 1 ? "" : "eis"} necessária{totalVars === 1 ? "" : "s"}
-                </p>
+                </Badge>
                 {totalVars > 0 && (
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-muted-foreground mt-1.5 text-xs">
                     Preencha cada variável na ordem em que ela aparece na mensagem ao lado.
                   </p>
                 )}
@@ -279,6 +281,7 @@ export function ActiveDispatchPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Contato</CardTitle>
+            <CardDescription>Escolha um contato já cadastrado ou informe um número novo para receber o disparo.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex gap-1.5">
@@ -286,7 +289,7 @@ export function ActiveDispatchPage() {
                 type="button"
                 onClick={() => setContactMode("existing")}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  "flex h-8 items-center justify-center rounded-full border px-3 text-xs font-medium transition-colors",
                   contactMode === "existing" ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background",
                 )}
               >
@@ -296,7 +299,7 @@ export function ActiveDispatchPage() {
                 type="button"
                 onClick={() => setContactMode("new")}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  "flex h-8 items-center justify-center rounded-full border px-3 text-xs font-medium transition-colors",
                   contactMode === "new" ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background",
                 )}
               >
