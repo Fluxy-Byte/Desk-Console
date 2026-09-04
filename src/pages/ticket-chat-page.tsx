@@ -100,6 +100,20 @@ export function TicketChatPage() {
     if (event.type === "ticket_message" && event.ticketId === id) mutate();
     if (event.type === "ticket_updated" && event.ticketId === id) mutate();
     if (event.type === "message_status" && event.ticketId === id) mutate();
+
+    // Este ticket foi transferido (fila ou atendente) — o registro aberto
+    // nesta tela já foi fechado no backend, mas o evento carrega o id do
+    // ticket NOVO criado pela transferência, não o deste, então não bate no
+    // filtro por ticketId acima. Detecta pelo transferredFromTicketId do
+    // ticket novo e sai da tela — cobre tanto quem transferiu (outra aba)
+    // quanto qualquer outra tela ainda olhando este ticket.
+    if ((event.type === "ticket_new" || event.type === "ticket_updated") && id) {
+      const payload = event.payload as { transferredFromTicketId?: string } | undefined;
+      if (payload?.transferredFromTicketId === id) {
+        toast.info("Este ticket foi transferido.");
+        navigate("/");
+      }
+    }
   });
 
   // Marca a última mensagem do cliente como lida assim que o atendente abre
