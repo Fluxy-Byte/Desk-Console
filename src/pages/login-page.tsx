@@ -84,7 +84,7 @@ export function LoginPage() {
       </div>
 
       <div className="bg-dot-grid flex flex-1 items-center justify-center p-4">
-        <Card className="w-full max-w-sm">
+        <Card className="w-3/4 max-w-2xl shadow-xl">
           <CardHeader>
             <CardTitle>Fluxy Desk</CardTitle>
             <CardDescription>Atendimento humano em tempo real.</CardDescription>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ApiError, api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -146,7 +147,7 @@ export function ActiveDispatchPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">1. Fila</CardTitle>
+          <CardTitle className="text-base">Fila</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-1.5">
@@ -173,7 +174,7 @@ export function ActiveDispatchPage() {
       {queueId && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">2. Template</CardTitle>
+            <CardTitle className="text-base">Template</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {templatesError ? (
@@ -210,7 +211,7 @@ export function ActiveDispatchPage() {
       {selectedTemplate && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">3. Pré-visualização</CardTitle>
+            <CardTitle className="text-base">Pré-visualização</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 sm:flex-row">
             <div className="flex flex-1 items-start justify-center rounded-lg bg-[#e5ddd5] p-6 dark:bg-[#0b141a]">
@@ -229,12 +230,45 @@ export function ActiveDispatchPage() {
                 )}
               </div>
             </div>
-            <div className="flex flex-1 flex-col gap-2 text-sm">
-              <p>
-                <strong>{totalVars}</strong> variável{totalVars === 1 ? "" : "eis"} necessária{totalVars === 1 ? "" : "s"}
-              </p>
-              {headerCount > 0 && <p className="text-muted-foreground">Header: {headerCount} variável(is)</p>}
-              {bodyCount > 0 && <p className="text-muted-foreground">Corpo: {bodyCount} variável(is)</p>}
+            <div className="flex flex-1 flex-col gap-3 text-sm">
+              <div>
+                <p className="font-medium">
+                  {totalVars} variável{totalVars === 1 ? "" : "eis"} necessária{totalVars === 1 ? "" : "s"}
+                </p>
+                {totalVars > 0 && (
+                  <p className="text-muted-foreground text-xs">
+                    Preencha cada variável na ordem em que ela aparece na mensagem ao lado.
+                  </p>
+                )}
+              </div>
+
+              {totalVars > 0 && (
+                <div className="flex flex-col gap-3">
+                  {Array.from({ length: totalVars }).map((_, i) => (
+                    <div key={i} className="border-border rounded-lg border p-3">
+                      <div className="mb-1.5 flex items-center gap-2">
+                        <span className="bg-primary/10 text-primary flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
+                          {i + 1}
+                        </span>
+                        <Label htmlFor={`dispatch-var-${i}`} className="text-xs font-normal">
+                          {i < headerCount ? "Header" : "Corpo"} · variável {i + 1}
+                        </Label>
+                      </div>
+                      <Input
+                        id={`dispatch-var-${i}`}
+                        value={variables[i] ?? ""}
+                        onChange={(e) =>
+                          setVariables((prev) => {
+                            const next = [...prev];
+                            next[i] = e.target.value;
+                            return next;
+                          })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -243,7 +277,7 @@ export function ActiveDispatchPage() {
       {selectedTemplate && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">4. Contato</CardTitle>
+            <CardTitle className="text-base">Contato</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex gap-1.5">
@@ -313,12 +347,7 @@ export function ActiveDispatchPage() {
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="dispatch-phone">Telefone</Label>
-                  <Input
-                    id="dispatch-phone"
-                    value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value)}
-                    placeholder="5511999999999"
-                  />
+                  <PhoneInput id="dispatch-phone" value={newPhone} onChange={setNewPhone} />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="dispatch-name">Nome (opcional)</Label>
@@ -329,29 +358,6 @@ export function ActiveDispatchPage() {
                   <Input id="dispatch-email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
                 </div>
                 {newErrors.length > 0 && <p className="text-destructive text-xs sm:col-span-3">{newErrors.join(", ")}</p>}
-              </div>
-            )}
-
-            {totalVars > 0 && (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {Array.from({ length: totalVars }).map((_, i) => (
-                  <div key={i} className="flex flex-col gap-1.5">
-                    <Label htmlFor={`dispatch-var-${i}`}>
-                      Variável {i + 1} {i < headerCount ? "(header)" : "(corpo)"}
-                    </Label>
-                    <Input
-                      id={`dispatch-var-${i}`}
-                      value={variables[i] ?? ""}
-                      onChange={(e) =>
-                        setVariables((prev) => {
-                          const next = [...prev];
-                          next[i] = e.target.value;
-                          return next;
-                        })
-                      }
-                    />
-                  </div>
-                ))}
               </div>
             )}
 
