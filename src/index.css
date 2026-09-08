@@ -133,8 +133,7 @@
 }
 
 .bg-dot-grid {
-  background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: var(--color-background);
 }
 
 .bg-sidebar-gradient {
