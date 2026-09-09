@@ -170,7 +170,7 @@ export function DeskLayout() {
           </Button>
           {dispatchQueues.length > 0 && (
             <Button className="h-10 w-full" variant="outline" onClick={() => navigate("/dispatch/new")}>
-              <Send className="size-4" /> Novo disparo
+              <Send className="size-4" /> Mensagem Ativa
             </Button>
           )}
         </div>
