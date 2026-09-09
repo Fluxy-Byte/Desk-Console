@@ -7,6 +7,7 @@ import { AlertCircle, Check, CheckCheck, HelpCircle, Paperclip, Send } from "luc
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ContactInfoCard } from "@/components/contact-info-card";
 import { MetadataEditor } from "@/components/metadata-editor";
 import {
   Dialog,
@@ -495,7 +496,8 @@ export function TicketChatPage() {
         </div>
 
         {ticket.target && (
-          <div className="border-border w-80 shrink-0 overflow-y-auto border-l p-4">
+          <div className="border-border flex w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l p-4">
+            <ContactInfoCard target={ticket.target} />
             <MetadataEditor targetId={ticket.target.id} metadata={ticket.target.metadata} onUpdated={() => mutate()} />
           </div>
         )}
@@ -527,10 +529,10 @@ function MessageBubble({
   return (
     <div className={`flex ${isCustomer ? "justify-start" : "justify-end"}`}>
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${pending ? "opacity-60" : ""} ${
+        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-md ${pending ? "opacity-60" : ""} ${
           isCustomer
-            ? "bg-card border-border rounded-bl-sm border"
-            : "bg-primary-soft text-primary-soft-foreground rounded-br-sm"
+            ? "bg-card border-border rounded-bl-sm border shadow-black/5"
+            : "bg-primary-soft text-primary-soft-foreground rounded-br-sm shadow-primary/25"
         }`}
       >
         <MessageContent message={message} />

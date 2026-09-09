@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AccordionItem } from "@/components/ui/accordion";
@@ -24,6 +24,22 @@ function isExpandable(value: unknown): boolean {
   return isPlainObject(value) || Array.isArray(value);
 }
 
+// Cor determinística por chave (mesmo hash sempre gera a mesma cor, mas cada
+// chave diferente cai num tom bem diferente) — dá a variedade "aleatória"
+// pedida sem o badge trocar de cor a cada re-render.
+function hashString(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+function keyBadgeStyle(key: string): CSSProperties {
+  const hue = hashString(key) % 360;
+  return { backgroundColor: `hsl(${hue} 62% 42%)`, color: "white", borderColor: "transparent" };
+}
+
 /// Uma linha key:value — se o valor for expansível (object/array) vira um
 /// AccordionItem com a lista recursiva dentro; senão o valor vai num Badge.
 function MetadataEntry({ label, value }: { label: string; value: unknown }) {
@@ -37,7 +53,7 @@ function MetadataEntry({ label, value }: { label: string; value: unknown }) {
 
   return (
     <div className="flex items-center gap-2">
-      <Badge variant="default" className="h-8 shrink-0">
+      <Badge variant="default" className="h-8 shrink-0" style={keyBadgeStyle(label)}>
         {label}
       </Badge>
       <Badge
@@ -119,42 +135,44 @@ export function MetadataEditor({ targetId, metadata, onUpdated }: MetadataEditor
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm">Metadados do contato</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2">
-        {entries.map(([key, value]) => (
-          <div key={key} className="flex items-start gap-2">
-            <div className="min-w-0 flex-1">
-              <MetadataEntry label={key} value={value} />
+    <div className="flex flex-col gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Metadados do contato</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          {entries.length === 0 && <p className="text-muted-foreground text-xs italic">Nenhum metadado ainda.</p>}
+          {entries.map(([key, value]) => (
+            <div key={key} className="flex items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <MetadataEntry label={key} value={value} />
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="mt-0.5 size-6 shrink-0"
+                disabled={saving}
+                onClick={() => handleRemove(key)}
+              >
+                <Trash2 className="size-3" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="mt-0.5 size-6 shrink-0"
-              disabled={saving}
-              onClick={() => handleRemove(key)}
-            >
-              <Trash2 className="size-3" />
-            </Button>
-          </div>
-        ))}
+          ))}
+        </CardContent>
+      </Card>
 
-        <div className="mt-2 flex items-center gap-2">
-          <Input placeholder="Chave" value={newKey} onChange={(e) => setNewKey(e.target.value)} className="h-8 text-xs" />
-          <Input placeholder="Valor" value={newValue} onChange={(e) => setNewValue(e.target.value)} className="h-8 text-xs" />
-          <Button
-            size="icon"
-            aria-label="Adicionar metadado"
-            className="size-8 shrink-0"
-            disabled={saving || !newKey.trim()}
-            onClick={handleAdd}
-          >
-            <Plus className="size-3" />
+      <Card className="border-primary/30 bg-primary/5 border-2 border-dashed shadow-none">
+        <CardHeader>
+          <CardTitle className="text-sm">Adicionar metadado</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          <Input placeholder="Chave" value={newKey} onChange={(e) => setNewKey(e.target.value)} className="h-9 bg-white text-xs" />
+          <Input placeholder="Valor" value={newValue} onChange={(e) => setNewValue(e.target.value)} className="h-9 bg-white text-xs" />
+          <Button className="mt-1" disabled={saving || !newKey.trim()} onClick={handleAdd}>
+            <Plus className="size-3.5" /> Adicionar
           </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
