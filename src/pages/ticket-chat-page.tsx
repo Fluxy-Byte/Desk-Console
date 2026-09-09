@@ -608,7 +608,7 @@ function MessageBubble({
         className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm text-white shadow-lg ${pending ? "opacity-60" : ""} ${
           isCustomer
             ? "rounded-tl-none bg-gradient-to-br from-orange-500 to-pink-500 shadow-orange-500/30"
-            : "rounded-tr-none bg-primary shadow-primary/40"
+            : "rounded-tr-none bg-gradient-to-r from-rose-400 via-pink-500 via-30% to-purple-600 shadow-purple-500/40"
         }`}
       >
         <MessageContent message={message} />
