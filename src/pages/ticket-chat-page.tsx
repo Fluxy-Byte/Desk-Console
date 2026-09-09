@@ -603,7 +603,7 @@ function MessageBubble({
   const sender = senderLabel(message, attendantName);
 
   return (
-    <div className={`flex ${isCustomer ? "justify-start" : "justify-end"}`}>
+    <div className={`flex flex-col gap-1 ${isCustomer ? "items-start" : "items-end"}`}>
       <div
         className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm text-white shadow-lg ${pending ? "opacity-60" : ""} ${
           isCustomer
@@ -612,12 +612,12 @@ function MessageBubble({
         }`}
       >
         <MessageContent message={message} />
-        <p className="mt-1 flex items-center justify-end gap-1 text-[10px] text-white/80">
-          {pending ? "enviando..." : dateTime}
-          {!pending && sender && ` · ${sender}`}
-          {!isCustomer && !pending && <MessageStatusTick status={message.waStatus} />}
-        </p>
       </div>
+      <p className="text-muted-foreground flex items-center gap-1 px-1 text-[10px]">
+        {pending ? "enviando..." : dateTime}
+        {!pending && sender && ` · ${sender}`}
+        {!isCustomer && !pending && <MessageStatusTick status={message.waStatus} />}
+      </p>
     </div>
   );
 }
