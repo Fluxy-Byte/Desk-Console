@@ -187,24 +187,26 @@ export function DeskLayout() {
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
                     "flex w-full flex-col items-start gap-1 rounded-md border p-3 text-left shadow-lg transition-all hover:-translate-y-0.5",
-                    isActive ? "border-orange-500/30 bg-orange-500/10" : "border-border bg-white",
+                    isActive ? "border-transparent bg-orange-500" : "border-border bg-white",
                   )}
                 >
                   <span className="flex w-full items-center justify-between gap-2">
                     <span className="flex min-w-0 items-center gap-1.5">
-                      {isUnread && <span className="bg-primary size-2 shrink-0 rounded-full" aria-label="Mensagem não lida" />}
-                      <span className={cn("truncate text-base", isUnread ? "font-semibold" : "font-medium")}>
+                      {isUnread && (
+                        <span className={cn("size-2 shrink-0 rounded-full", isActive ? "bg-white" : "bg-primary")} aria-label="Mensagem não lida" />
+                      )}
+                      <span className={cn("truncate text-base", isActive ? "text-white" : "text-foreground", isUnread ? "font-semibold" : "font-medium")}>
                         {ticket.target?.name || ticket.target?.waId || "Contato"}
                       </span>
                     </span>
-                    <span className="text-muted-foreground shrink-0 text-[11px]">
+                    <span className={cn("shrink-0 text-[11px]", isActive ? "text-white" : "text-muted-foreground")}>
                       {formatTicketTime(ticket.lastMessageAt ?? ticket.updatedAt)}
                     </span>
                   </span>
-                  <span className="text-muted-foreground w-full truncate text-xs">
+                  <span className={cn("w-full truncate text-xs", isActive ? "text-white" : "text-muted-foreground")}>
                     {ticket.lastMessageText || "Sem mensagens ainda"}
                   </span>
-                  <span className="text-muted-foreground text-[11px]">
+                  <span className={cn("text-[11px]", isActive ? "text-white" : "text-muted-foreground")}>
                     #{ticket.ticketNumber} · {ticket.queue?.name}
                   </span>
                 </button>
