@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import useSWR from "swr";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { History, LogOut, Send } from "lucide-react";
 import { toast } from "sonner";
 import fluxyLogo from "@/assets/Logo.png";
@@ -17,6 +15,18 @@ import type { Queue, Ticket } from "@/types/domain";
 
 const STATUS_LABELS: Record<AttendantStatus, string> = { ONLINE: "Online", PAUSED: "Pausa", OFFLINE: "Offline" };
 const STATUS_DOT: Record<AttendantStatus, string> = { ONLINE: "bg-emerald-500", PAUSED: "bg-amber-500", OFFLINE: "bg-muted-foreground" };
+
+// "Agora" pro que acabou de chegar (menos de 1 min), senão hora cheia em
+// 12h com AM/PM — igual ao pedido, sem depender do locale do date-fns.
+function formatTicketTime(iso: string): string {
+  const date = new Date(iso);
+  if (Date.now() - date.getTime() < 60_000) return "Agora";
+  const hours24 = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const period = hours24 >= 12 ? "PM" : "AM";
+  const hours12 = hours24 % 12 || 12;
+  return `${hours12}:${minutes} ${period}`;
+}
 
 /// Shell no estilo WhatsApp: lista de tickets (contatos) fixa à esquerda,
 /// conteúdo do ticket selecionado (chat + metadados) no <Outlet/>. Sem página
@@ -176,28 +186,34 @@ export function DeskLayout() {
                   key={ticket.id}
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
-                    "bg-card border-border/60 flex w-full flex-col items-start gap-0.5 rounded-lg border p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
-                    isActive && "border-transparent bg-neutral-200 shadow-md",
+                    "flex w-full flex-col items-start gap-1 rounded-md p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+                    isActive ? "bg-gradient-to-br from-pink-500 to-purple-600 shadow-md" : "bg-neutral-200",
                   )}
                 >
-                  <span className="flex w-full items-center gap-1.5">
-                    {isUnread && (
-                      <span className="bg-primary size-2 shrink-0 rounded-full" aria-label="Mensagem não lida" />
-                    )}
-                    <span
-                      className={cn(
-                        "truncate text-sm",
-                        isUnread && !isActive ? "text-foreground font-semibold" : "font-medium",
+                  <span className="flex w-full items-center justify-between gap-2">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      {isUnread && (
+                        <span className={cn("size-2 shrink-0 rounded-full", isActive ? "bg-white" : "bg-primary")} aria-label="Mensagem não lida" />
                       )}
-                    >
-                      {ticket.target?.name || ticket.target?.waId || "Contato"}
+                      <span
+                        className={cn(
+                          "truncate text-sm",
+                          isActive ? "text-white" : "text-foreground",
+                          isUnread && !isActive ? "font-semibold" : "font-medium",
+                        )}
+                      >
+                        {ticket.target?.name || ticket.target?.waId || "Contato"}
+                      </span>
+                    </span>
+                    <span className={cn("shrink-0 text-[11px]", isActive ? "text-white" : "text-muted-foreground")}>
+                      {formatTicketTime(ticket.lastMessageAt ?? ticket.updatedAt)}
                     </span>
                   </span>
-                  <span className="text-muted-foreground w-full truncate text-xs">
-                    #{ticket.ticketNumber} · {ticket.queue?.name}
+                  <span className={cn("w-full truncate text-xs", isActive ? "text-white" : "text-muted-foreground")}>
+                    {ticket.lastMessageText || "Sem mensagens ainda"}
                   </span>
-                  <span className="text-muted-foreground text-[11px]">
-                    {formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true, locale: ptBR })}
+                  <span className={cn("text-[11px]", isActive ? "text-white" : "text-muted-foreground")}>
+                    #{ticket.ticketNumber} · {ticket.queue?.name}
                   </span>
                 </button>
               );

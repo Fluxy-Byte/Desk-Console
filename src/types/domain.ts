@@ -63,6 +63,8 @@ export interface Ticket {
   closeTag?: TicketCloseTag | null;
   waitDurationMs?: number | null;
   handlingDurationMs?: number | null;
+  lastMessageText?: string | null;
+  lastMessageAt?: string | null;
 }
 
 export interface TicketListResult {
