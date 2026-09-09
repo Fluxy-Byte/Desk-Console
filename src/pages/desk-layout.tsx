@@ -186,27 +186,25 @@ export function DeskLayout() {
                   key={ticket.id}
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
-                    "flex w-full flex-col items-start gap-1 rounded-md p-3 text-left transition-all hover:-translate-y-0.5",
-                    isActive ? "bg-primary shadow-lg" : "bg-transparent hover:shadow-md",
+                    "flex w-full flex-col items-start gap-1 rounded-md border p-3 text-left transition-all hover:-translate-y-0.5",
+                    isActive ? "border-primary/30 bg-primary/5 shadow-lg" : "border-transparent bg-transparent hover:shadow-md",
                   )}
                 >
                   <span className="flex w-full items-center justify-between gap-2">
                     <span className="flex min-w-0 items-center gap-1.5">
-                      {isUnread && (
-                        <span className={cn("size-2 shrink-0 rounded-full", isActive ? "bg-white" : "bg-primary")} aria-label="Mensagem não lida" />
-                      )}
-                      <span className={cn("truncate text-base", isActive ? "text-white" : "text-foreground", isUnread ? "font-semibold" : "font-medium")}>
+                      {isUnread && <span className="bg-primary size-2 shrink-0 rounded-full" aria-label="Mensagem não lida" />}
+                      <span className={cn("truncate text-base", isUnread ? "font-semibold" : "font-medium")}>
                         {ticket.target?.name || ticket.target?.waId || "Contato"}
                       </span>
                     </span>
-                    <span className={cn("shrink-0 text-[11px]", isActive ? "text-white" : "text-muted-foreground")}>
+                    <span className="text-muted-foreground shrink-0 text-[11px]">
                       {formatTicketTime(ticket.lastMessageAt ?? ticket.updatedAt)}
                     </span>
                   </span>
-                  <span className={cn("w-full truncate text-xs", isActive ? "text-white" : "text-muted-foreground")}>
+                  <span className="text-muted-foreground w-full truncate text-xs">
                     {ticket.lastMessageText || "Sem mensagens ainda"}
                   </span>
-                  <span className={cn("text-[11px]", isActive ? "text-white" : "text-muted-foreground")}>
+                  <span className="text-muted-foreground text-[11px]">
                     #{ticket.ticketNumber} · {ticket.queue?.name}
                   </span>
                 </button>
