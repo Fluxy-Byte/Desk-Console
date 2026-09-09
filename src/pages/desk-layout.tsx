@@ -186,10 +186,10 @@ export function DeskLayout() {
                   key={ticket.id}
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
-                    "flex w-full flex-col items-start gap-1 rounded-md p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+                    "flex w-full flex-col items-start gap-1 rounded-md p-3 text-left shadow-lg transition-all hover:-translate-y-0.5",
                     isActive
-                      ? "bg-gradient-to-r from-rose-400 via-pink-500 via-30% to-purple-600 shadow-md"
-                      : "bg-white shadow-md",
+                      ? "bg-gradient-to-r from-rose-400 via-pink-500 via-30% to-purple-600"
+                      : "bg-white",
                   )}
                 >
                   <span className="flex w-full items-center justify-between gap-2">
