@@ -133,7 +133,7 @@ export function LoginPage() {
                   />
                 </div>
                 {error && <p className="text-destructive text-sm">{error}</p>}
-                <Button type="submit" disabled={loading} className="mt-2">
+                <Button type="submit" disabled={loading} className="bg-primary text-primary-foreground mt-2 hover:opacity-90">
                   {loading ? "Entrando..." : "Entrar"}
                 </Button>
               </form>
