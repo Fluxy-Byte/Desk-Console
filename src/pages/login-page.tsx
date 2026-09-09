@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import capaImage from "@/assets/Capa.jpg";
+import logoImage from "@/assets/Logo.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -86,7 +87,10 @@ export function LoginPage() {
       <div className="bg-dot-grid flex flex-1 items-center justify-center p-4">
         <Card className="w-3/4 max-w-2xl shadow-xl">
           <CardHeader>
-            <CardTitle>Fluxy Desk</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <img src={logoImage} alt="Fluxy" className="size-7 rounded-md" />
+              Fluxy Desk
+            </CardTitle>
             <CardDescription>Atendimento humano em tempo real.</CardDescription>
           </CardHeader>
           <CardContent>
