@@ -177,7 +177,7 @@ export function DeskLayout() {
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
                     "bg-card border-border/60 flex w-full flex-col items-start gap-0.5 rounded-lg border p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
-                    isActive && "border-transparent bg-muted shadow-md",
+                    isActive && "border-transparent bg-neutral-200 shadow-md",
                   )}
                 >
                   <span className="flex w-full items-center gap-1.5">

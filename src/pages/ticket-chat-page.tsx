@@ -529,16 +529,14 @@ function MessageBubble({
   return (
     <div className={`flex ${isCustomer ? "justify-start" : "justify-end"}`}>
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-md ${pending ? "opacity-60" : ""} ${
+        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm text-white shadow-md ${pending ? "opacity-60" : ""} ${
           isCustomer
-            ? "bg-card border-border rounded-bl-sm border shadow-black/5"
-            : "bg-primary-soft text-primary-soft-foreground rounded-br-sm shadow-primary/25"
+            ? "rounded-bl-sm bg-[#FF7F50] shadow-black/10"
+            : "rounded-br-sm bg-gradient-to-br from-pink-500 to-purple-600 shadow-purple-500/25"
         }`}
       >
         <MessageContent message={message} />
-        <p
-          className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${isCustomer ? "text-muted-foreground" : "text-primary-soft-foreground/70"}`}
-        >
+        <p className="mt-1 flex items-center justify-end gap-1 text-[10px] text-white/80">
           {pending ? "enviando..." : dateTime}
           {!pending && sender && ` · ${sender}`}
           {!isCustomer && !pending && <MessageStatusTick status={message.waStatus} />}
