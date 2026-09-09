@@ -177,12 +177,12 @@ export function DeskLayout() {
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
                     "bg-card border-border/60 flex w-full flex-col items-start gap-0.5 rounded-xl border p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
-                    isActive && "border-transparent bg-[#82cf34] text-neutral-900 shadow-md",
+                    isActive && "border-2 border-[#82cf34] bg-[#82cf34]/10 shadow-sm",
                   )}
                 >
                   <span className="flex w-full items-center gap-1.5">
                     {isUnread && (
-                      <span className={cn("size-2 shrink-0 rounded-full", isActive ? "bg-neutral-900" : "bg-primary")} aria-label="Mensagem não lida" />
+                      <span className="bg-primary size-2 shrink-0 rounded-full" aria-label="Mensagem não lida" />
                     )}
                     <span
                       className={cn(
@@ -193,10 +193,10 @@ export function DeskLayout() {
                       {ticket.target?.name || ticket.target?.waId || "Contato"}
                     </span>
                   </span>
-                  <span className={cn("w-full truncate text-xs", isActive ? "text-neutral-900/70" : "text-muted-foreground")}>
+                  <span className="text-muted-foreground w-full truncate text-xs">
                     #{ticket.ticketNumber} · {ticket.queue?.name}
                   </span>
-                  <span className={cn("text-[11px]", isActive ? "text-neutral-900/70" : "text-muted-foreground")}>
+                  <span className="text-muted-foreground text-[11px]">
                     {formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true, locale: ptBR })}
                   </span>
                 </button>
