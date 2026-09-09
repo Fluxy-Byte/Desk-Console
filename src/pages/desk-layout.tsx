@@ -161,10 +161,10 @@ export function DeskLayout() {
         </div>
 
         <div className="border-border flex flex-col items-center gap-2 border-b p-4">
-          <p className="text-muted-foreground flex items-baseline gap-1.5 text-sm">
+          <div className="flex flex-col items-center gap-1 text-center">
             <span className="text-primary font-[family-name:var(--font-display)] text-2xl font-bold">{waitingCount}</span>
-            ticket{waitingCount === 1 ? "" : "s"} aguardando
-          </p>
+            <span className="text-muted-foreground text-sm">Tickets Aguardando</span>
+          </div>
           <Button className="h-10 w-full" disabled={waitingCount === 0 || pulling} onClick={handlePullNext}>
             {pulling ? "Puxando..." : "Puxar ticket"}
           </Button>
