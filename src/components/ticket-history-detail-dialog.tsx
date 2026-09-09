@@ -1,7 +1,9 @@
 import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MessageBubble } from "@/components/message-bubble";
 import { formatDuration } from "@/lib/format-duration";
+import { useAppSelector } from "@/store/hooks";
 import type { TicketDetail } from "@/types/domain";
 
 const TICKET_STATUS_LABELS: Record<string, string> = {
@@ -20,6 +22,7 @@ interface TicketHistoryDetailDialogProps {
 /// atendente logado.
 export function TicketHistoryDetailDialog({ ticketId, onOpenChange }: TicketHistoryDetailDialogProps) {
   const { data: ticket } = useSWR<TicketDetail>(ticketId ? `/tickets/${ticketId}` : null);
+  const userName = useAppSelector((s) => s.auth.user?.name);
 
   return (
     <Dialog open={ticketId !== null} onOpenChange={onOpenChange}>
@@ -46,19 +49,9 @@ export function TicketHistoryDetailDialog({ ticketId, onOpenChange }: TicketHist
 
               <div className="flex min-h-0 flex-col overflow-y-auto p-4">
                 <h3 className="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">Conversa</h3>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {ticket.history.map((message) => (
-                    <div
-                      key={message._id}
-                      className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                        message.direction === "OUTBOUND" ? "bg-primary/10 self-end" : "bg-muted self-start"
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap break-words">{message.text || `[${message.messageType}]`}</p>
-                      <p className="text-muted-foreground mt-1 text-[11px]">
-                        {new Date(message.createdAt).toLocaleString("pt-BR")}
-                      </p>
-                    </div>
+                    <MessageBubble key={message._id} message={message} attendantName={userName} />
                   ))}
                   {ticket.history.length === 0 && (
                     <p className="text-muted-foreground text-sm">Nenhuma mensagem encontrada.</p>
