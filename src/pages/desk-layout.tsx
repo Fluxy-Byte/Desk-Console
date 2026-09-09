@@ -177,12 +177,12 @@ export function DeskLayout() {
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
                     "bg-card border-border/60 flex w-full flex-col items-start gap-0.5 rounded-xl border p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
-                    isActive && "border-transparent bg-[#225451] text-white shadow-md",
+                    isActive && "border-transparent bg-[#82cf34] text-neutral-900 shadow-md",
                   )}
                 >
                   <span className="flex w-full items-center gap-1.5">
                     {isUnread && (
-                      <span className={cn("size-2 shrink-0 rounded-full", isActive ? "bg-white" : "bg-primary")} aria-label="Mensagem não lida" />
+                      <span className={cn("size-2 shrink-0 rounded-full", isActive ? "bg-neutral-900" : "bg-primary")} aria-label="Mensagem não lida" />
                     )}
                     <span
                       className={cn(
@@ -193,10 +193,10 @@ export function DeskLayout() {
                       {ticket.target?.name || ticket.target?.waId || "Contato"}
                     </span>
                   </span>
-                  <span className={cn("w-full truncate text-xs", isActive ? "text-white/75" : "text-muted-foreground")}>
+                  <span className={cn("w-full truncate text-xs", isActive ? "text-neutral-900/70" : "text-muted-foreground")}>
                     #{ticket.ticketNumber} · {ticket.queue?.name}
                   </span>
-                  <span className={cn("text-[11px]", isActive ? "text-white/75" : "text-muted-foreground")}>
+                  <span className={cn("text-[11px]", isActive ? "text-neutral-900/70" : "text-muted-foreground")}>
                     {formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true, locale: ptBR })}
                   </span>
                 </button>
