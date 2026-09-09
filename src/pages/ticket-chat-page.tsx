@@ -486,7 +486,12 @@ export function TicketChatPage() {
                       }
                     }}
                   />
-                  <Button type="submit" size="icon" className="size-12 shrink-0" disabled={sending || !text.trim()}>
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className="size-12 shrink-0 bg-gradient-to-br from-orange-500 to-pink-500 text-white"
+                    disabled={sending || !text.trim()}
+                  >
                     <Send className="size-4" />
                   </Button>
                 </form>
