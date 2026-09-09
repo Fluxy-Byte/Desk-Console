@@ -148,11 +148,7 @@ export function MetadataEditor({ targetId, metadata, onUpdated }: MetadataEditor
         <CardContent className="flex flex-col gap-2">
           <Input placeholder="Chave" value={newKey} onChange={(e) => setNewKey(e.target.value)} className="h-9 bg-white text-xs" />
           <Input placeholder="Valor" value={newValue} onChange={(e) => setNewValue(e.target.value)} className="h-9 bg-white text-xs" />
-          <Button
-            className="bg-primary text-primary-foreground mt-1 hover:opacity-90"
-            disabled={saving || !newKey.trim()}
-            onClick={handleAdd}
-          >
+          <Button className="mt-1" disabled={saving || !newKey.trim()} onClick={handleAdd}>
             <Plus className="size-3.5" /> Adicionar
           </Button>
         </CardContent>
