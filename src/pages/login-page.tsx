@@ -80,7 +80,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen">
       <div className="hidden lg:block lg:w-1/2">
-        <img src={capaImage} alt="Fluxy Desk" className="h-full w-full object-cover" />
+        <img src={capaImage} alt="Fluxy Desk" className="h-full w-full object-cover object-[center_25%]" />
       </div>
 
       <div className="bg-dot-grid flex flex-1 items-center justify-center p-4">
