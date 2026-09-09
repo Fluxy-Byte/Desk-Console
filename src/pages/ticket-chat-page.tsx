@@ -65,6 +65,7 @@ export function TicketChatPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const userId = useAppSelector((s) => s.auth.user?.id);
+  const userName = useAppSelector((s) => s.auth.user?.name);
 
   const { data: ticket, mutate, isLoading } = useSWR<TicketDetail>(id ? `/tickets/${id}` : null, {
     refreshInterval: 0,
@@ -296,6 +297,9 @@ export function TicketChatPage() {
 
   const currentQueue = queues?.find((q) => q.id === ticket.queueId);
   const otherAttendants = currentQueue?.members?.filter((m) => m.userId !== userId) ?? [];
+  const assignedAttendantName =
+    (ticket.assignedUserId === userId ? userName : undefined) ??
+    currentQueue?.members?.find((m) => m.userId === ticket.assignedUserId)?.user.name;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -413,10 +417,10 @@ export function TicketChatPage() {
                 <p className="text-muted-foreground py-8 text-center text-sm">Nenhuma mensagem ainda.</p>
               )}
               {ticket.history.map((msg) => (
-                <MessageBubble key={msg._id} message={msg} />
+                <MessageBubble key={msg._id} message={msg} attendantName={assignedAttendantName} />
               ))}
               {pendingMessages.map((msg) => (
-                <MessageBubble key={msg._id} message={msg} pending />
+                <MessageBubble key={msg._id} message={msg} attendantName={assignedAttendantName} pending />
               ))}
               <div ref={bottomRef} />
             </div>
@@ -500,8 +504,25 @@ export function TicketChatPage() {
   );
 }
 
-function MessageBubble({ message, pending }: { message: MessageDocument; pending?: boolean }) {
+function senderLabel(message: MessageDocument, attendantName?: string): string | null {
+  if (message.senderType === "SYSTEM") return "Sistema";
+  if (message.senderType === "AGENT_AI") return "IA";
+  if (message.senderType === "ATTENDANT") return attendantName ?? "Atendente";
+  return null;
+}
+
+function MessageBubble({
+  message,
+  attendantName,
+  pending,
+}: {
+  message: MessageDocument;
+  attendantName?: string;
+  pending?: boolean;
+}) {
   const isCustomer = message.senderType === "CUSTOMER";
+  const dateTime = format(new Date(message.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+  const sender = senderLabel(message, attendantName);
 
   return (
     <div className={`flex ${isCustomer ? "justify-start" : "justify-end"}`}>
@@ -509,16 +530,15 @@ function MessageBubble({ message, pending }: { message: MessageDocument; pending
         className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${pending ? "opacity-60" : ""} ${
           isCustomer
             ? "bg-card border-border rounded-bl-sm border"
-            : "bg-primary text-primary-foreground rounded-br-sm"
+            : "bg-primary-soft text-primary-soft-foreground rounded-br-sm"
         }`}
       >
         <MessageContent message={message} />
         <p
-          className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${isCustomer ? "text-muted-foreground" : "text-primary-foreground/70"}`}
+          className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${isCustomer ? "text-muted-foreground" : "text-primary-soft-foreground/70"}`}
         >
-          {pending ? "enviando..." : format(new Date(message.createdAt), "HH:mm", { locale: ptBR })}
-          {message.senderType === "SYSTEM" && " · sistema"}
-          {message.senderType === "AGENT_AI" && " · IA"}
+          {pending ? "enviando..." : dateTime}
+          {!pending && sender && ` · ${sender}`}
           {!isCustomer && !pending && <MessageStatusTick status={message.waStatus} />}
         </p>
       </div>
