@@ -96,7 +96,15 @@ export interface MessageDocument {
   createdAt: string;
 }
 
+export interface RelatedTicket {
+  id: string;
+  ticketNumber: number;
+  createdAt: string;
+  closedAt: string | null;
+}
+
 export interface TicketDetail extends Ticket {
   messages: TicketMessage[];
   history: MessageDocument[];
+  relatedTickets: RelatedTicket[];
 }

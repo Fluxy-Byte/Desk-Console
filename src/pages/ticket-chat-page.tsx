@@ -1,9 +1,9 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AlertCircle, ArrowRightLeft, Check, CheckCheck, HelpCircle, Paperclip, Send } from "lucide-react";
+import { AlertCircle, ArrowRightLeft, Check, CheckCheck, HelpCircle, LogIn, LogOut, Paperclip, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ApiError, api } from "@/lib/api";
 import { useRealtimeEvent } from "@/lib/realtime";
 import { useAppSelector } from "@/store/hooks";
-import type { MessageDocument, MessageType, Queue, TicketDetail } from "@/types/domain";
+import type { MessageDocument, MessageType, Queue, RelatedTicket, TicketDetail } from "@/types/domain";
 
 // A Cloud API mantém o indicador "digitando..." ativo por ~25s — reenviar a
 // cada 8s enquanto o atendente digita mantém aceso sem virar spam de request.
@@ -417,9 +417,7 @@ export function TicketChatPage() {
               {ticket.history.length === 0 && pendingMessages.length === 0 && (
                 <p className="text-muted-foreground py-8 text-center text-sm">Nenhuma mensagem ainda.</p>
               )}
-              {ticket.history.map((msg) => (
-                <MessageBubble key={msg._id} message={msg} attendantName={assignedAttendantName} />
-              ))}
+              {buildTimeline(ticket.history, ticket.relatedTickets, assignedAttendantName).map((entry) => entry.node)}
               {pendingMessages.map((msg) => (
                 <MessageBubble key={msg._id} message={msg} attendantName={assignedAttendantName} pending />
               ))}
@@ -504,6 +502,56 @@ export function TicketChatPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+interface TimelineEntry {
+  key: string;
+  createdAt: string;
+  node: ReactNode;
+}
+
+/// Intercala o histórico completo da sessão com marcadores de abertura/
+/// encerramento de cada ticket que já passou por essa mesma conversa
+/// (reabertura, etc.) — o atendente vê o contexto inteiro, não só a fatia
+/// deste ticket, com marcação clara de onde um atendimento terminou e o
+/// outro começou.
+function buildTimeline(history: MessageDocument[], relatedTickets: RelatedTicket[], attendantName?: string): TimelineEntry[] {
+  const entries: TimelineEntry[] = history.map((message) => ({
+    key: message._id,
+    createdAt: message.createdAt,
+    node: <MessageBubble key={message._id} message={message} attendantName={attendantName} />,
+  }));
+
+  for (const t of relatedTickets) {
+    entries.push({
+      key: `${t.id}-open`,
+      createdAt: t.createdAt,
+      node: <TicketDivider key={`${t.id}-open`} ticketNumber={t.ticketNumber} label="Abertura" />,
+    });
+    if (t.closedAt) {
+      entries.push({
+        key: `${t.id}-close`,
+        createdAt: t.closedAt,
+        node: <TicketDivider key={`${t.id}-close`} ticketNumber={t.ticketNumber} label="Encerramento" />,
+      });
+    }
+  }
+
+  return entries.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+}
+
+function TicketDivider({ ticketNumber, label }: { ticketNumber: number; label: "Abertura" | "Encerramento" }) {
+  const isOpen = label === "Abertura";
+  return (
+    <div className="my-2 flex items-center gap-3">
+      <div className="border-border h-px flex-1 border-t" />
+      <Badge variant={isOpen ? "success" : "destructive"} className="shrink-0 gap-1.5 px-3 py-1 text-xs font-semibold">
+        {isOpen ? <LogIn className="size-3.5" /> : <LogOut className="size-3.5" />}
+        Ticket #{ticketNumber} · {label}
+      </Badge>
+      <div className="border-border h-px flex-1 border-t" />
     </div>
   );
 }
