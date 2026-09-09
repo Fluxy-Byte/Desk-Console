@@ -197,7 +197,7 @@ export function DeskLayout() {
                       )}
                       <span
                         className={cn(
-                          "truncate text-sm",
+                          "truncate text-base",
                           isActive ? "text-white" : "text-foreground",
                           isUnread && !isActive ? "font-semibold" : "font-medium",
                         )}
