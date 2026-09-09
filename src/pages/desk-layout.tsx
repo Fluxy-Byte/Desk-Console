@@ -161,7 +161,7 @@ export function DeskLayout() {
         </div>
 
         <div className="border-border flex flex-col items-center gap-2 border-b p-4">
-          <div className="flex flex-col items-center gap-1 text-center">
+          <div className="flex items-center gap-2">
             <span className="text-primary font-[family-name:var(--font-display)] text-2xl font-bold">{waitingCount}</span>
             <span className="text-muted-foreground text-sm">Tickets Aguardando</span>
           </div>
