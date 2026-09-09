@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AlertCircle, Check, CheckCheck, HelpCircle, Paperclip, Send } from "lucide-react";
+import { AlertCircle, ArrowRightLeft, Check, CheckCheck, HelpCircle, Paperclip, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -314,7 +314,7 @@ export function TicketChatPage() {
         <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
-              Transferir
+              <ArrowRightLeft className="size-4" /> Transferir
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -355,7 +355,7 @@ export function TicketChatPage() {
         </Dialog>
         <Dialog open={closeOpen} onOpenChange={(open) => (open ? openCloseDialog() : setCloseOpen(false))}>
           <DialogTrigger asChild>
-            <Button variant="destructive" size="sm">
+            <Button variant="outline-destructive" size="sm">
               Encerrar
             </Button>
           </DialogTrigger>

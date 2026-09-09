@@ -155,11 +155,11 @@ export function DeskLayout() {
             <span className="text-primary font-[family-name:var(--font-display)] text-2xl font-bold">{waitingCount}</span>
             ticket{waitingCount === 1 ? "" : "s"} aguardando
           </p>
-          <Button className="w-full" disabled={waitingCount === 0 || pulling} onClick={handlePullNext}>
+          <Button className="h-10 w-full" disabled={waitingCount === 0 || pulling} onClick={handlePullNext}>
             {pulling ? "Puxando..." : "Puxar ticket"}
           </Button>
           {dispatchQueues.length > 0 && (
-            <Button className="w-full" variant="outline" onClick={() => navigate("/dispatch/new")}>
+            <Button className="h-10 w-full" variant="outline" onClick={() => navigate("/dispatch/new")}>
               <Send className="size-4" /> Novo disparo
             </Button>
           )}
