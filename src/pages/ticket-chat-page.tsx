@@ -437,42 +437,44 @@ export function TicketChatPage() {
               ) : (
                 <form className="flex items-end gap-2" onSubmit={handleSubmit}>
                   <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelected} />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="size-12 shrink-0"
-                    disabled={uploading}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Paperclip className="size-4" />
-                  </Button>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon" className="size-10 shrink-0" aria-label="Limites de anexo">
-                        <HelpCircle className="text-muted-foreground size-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Limites de anexo do WhatsApp</DialogTitle>
-                        <DialogDescription>
-                          Definidos pela Meta — arquivos fora desses limites ou de tipo não suportado não são
-                          entregues ao cliente.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="flex flex-col gap-3 text-sm">
-                        {Object.entries(MEDIA_LIMITS).map(([type, info]) => (
-                          <div key={type} className="flex items-center justify-between gap-4">
-                            <span>{info.label}</span>
-                            <Badge variant="secondary" className="shrink-0">
-                              até {info.maxSizeMb} MB
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <div className="flex items-center gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon" className="size-10 shrink-0" aria-label="Limites de anexo">
+                          <HelpCircle className="text-muted-foreground size-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Limites de anexo do WhatsApp</DialogTitle>
+                          <DialogDescription>
+                            Definidos pela Meta — arquivos fora desses limites ou de tipo não suportado não são
+                            entregues ao cliente.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col gap-3 text-sm">
+                          {Object.entries(MEDIA_LIMITS).map(([type, info]) => (
+                            <div key={type} className="flex items-center justify-between gap-4">
+                              <span>{info.label}</span>
+                              <Badge variant="secondary" className="shrink-0">
+                                até {info.maxSizeMb} MB
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-12 shrink-0"
+                      disabled={uploading}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Paperclip className="size-4" />
+                    </Button>
+                  </div>
                   <Textarea
                     rows={1}
                     className="h-12 min-h-0 flex-1 resize-none"
