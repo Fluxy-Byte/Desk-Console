@@ -1,8 +1,7 @@
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AccordionItem } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,24 +23,9 @@ function isExpandable(value: unknown): boolean {
   return isPlainObject(value) || Array.isArray(value);
 }
 
-// Cor determinística por chave (mesmo hash sempre gera a mesma cor, mas cada
-// chave diferente cai num tom bem diferente) — dá a variedade "aleatória"
-// pedida sem o badge trocar de cor a cada re-render.
-function hashString(value: string): number {
-  let hash = 0;
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
-  }
-  return hash;
-}
-
-function keyBadgeStyle(key: string): CSSProperties {
-  const hue = hashString(key) % 360;
-  return { backgroundColor: `hsl(${hue} 62% 42%)`, color: "white", borderColor: "transparent" };
-}
-
 /// Uma linha key:value — se o valor for expansível (object/array) vira um
-/// AccordionItem com a lista recursiva dentro; senão o valor vai num Badge.
+/// AccordionItem com a lista recursiva dentro; senão vira título (chave) e
+/// valor embaixo, no mesmo estilo do card de Contato.
 function MetadataEntry({ label, value }: { label: string; value: unknown }) {
   if (isExpandable(value)) {
     return (
@@ -52,16 +36,9 @@ function MetadataEntry({ label, value }: { label: string; value: unknown }) {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Badge variant="default" className="h-8 shrink-0" style={keyBadgeStyle(label)}>
-        {label}
-      </Badge>
-      <Badge
-        variant="outline"
-        className="h-8 min-w-0 max-w-full justify-start truncate border-neutral-200 bg-white text-neutral-900"
-      >
-        {String(value)}
-      </Badge>
+    <div className="flex flex-col gap-0.5">
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className="truncate text-sm font-medium">{String(value)}</span>
     </div>
   );
 }
@@ -73,7 +50,7 @@ function MetadataValue({ value }: { value: unknown }) {
   if (Array.isArray(value)) {
     if (value.length === 0) return <span className="text-muted-foreground text-xs italic">lista vazia</span>;
     return (
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         {value.map((item, index) => (
           <MetadataEntry key={index} label={`#${index}`} value={item} />
         ))}
@@ -85,7 +62,7 @@ function MetadataValue({ value }: { value: unknown }) {
     const entries = Object.entries(value);
     if (entries.length === 0) return <span className="text-muted-foreground text-xs italic">vazio</span>;
     return (
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         {entries.map(([key, nested]) => (
           <MetadataEntry key={key} label={key} value={nested} />
         ))}
@@ -94,9 +71,9 @@ function MetadataValue({ value }: { value: unknown }) {
   }
 
   return (
-    <Badge variant="outline" className="h-8 max-w-full truncate border-neutral-200 bg-white text-neutral-900">
-      {String(value)}
-    </Badge>
+    <div className="flex flex-col gap-0.5">
+      <span className="truncate text-sm font-medium">{String(value)}</span>
+    </div>
   );
 }
 
@@ -140,10 +117,13 @@ export function MetadataEditor({ targetId, metadata, onUpdated }: MetadataEditor
         <CardHeader>
           <CardTitle className="text-sm">Metadados do contato</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+        <CardContent className="flex flex-col gap-3">
           {entries.length === 0 && <p className="text-muted-foreground text-xs italic">Nenhum metadado ainda.</p>}
-          {entries.map(([key, value]) => (
-            <div key={key} className="flex items-start gap-2">
+          {entries.map(([key, value], index) => (
+            <div
+              key={key}
+              className={`flex items-start gap-2 ${index < entries.length - 1 ? "border-border/60 border-b pb-3" : ""}`}
+            >
               <div className="min-w-0 flex-1">
                 <MetadataEntry label={key} value={value} />
               </div>

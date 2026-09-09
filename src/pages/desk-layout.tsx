@@ -170,27 +170,33 @@ export function DeskLayout() {
           <div className="flex flex-col gap-2">
             {mine?.map((ticket) => {
               const isUnread = unreadTicketIds.has(ticket.id);
+              const isActive = activeTicketId === ticket.id;
               return (
                 <button
                   key={ticket.id}
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
                     "bg-card border-border/60 flex w-full flex-col items-start gap-0.5 rounded-xl border p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
-                    activeTicketId === ticket.id && "border-primary/50 ring-primary/20 shadow-md ring-2",
+                    isActive && "border-transparent bg-[#225451] text-white shadow-md",
                   )}
                 >
                   <span className="flex w-full items-center gap-1.5">
                     {isUnread && (
-                      <span className="bg-primary size-2 shrink-0 rounded-full" aria-label="Mensagem não lida" />
+                      <span className={cn("size-2 shrink-0 rounded-full", isActive ? "bg-white" : "bg-primary")} aria-label="Mensagem não lida" />
                     )}
-                    <span className={cn("truncate text-sm", isUnread ? "text-foreground font-semibold" : "font-medium")}>
+                    <span
+                      className={cn(
+                        "truncate text-sm",
+                        isUnread && !isActive ? "text-foreground font-semibold" : "font-medium",
+                      )}
+                    >
                       {ticket.target?.name || ticket.target?.waId || "Contato"}
                     </span>
                   </span>
-                  <span className="text-muted-foreground w-full truncate text-xs">
+                  <span className={cn("w-full truncate text-xs", isActive ? "text-white/75" : "text-muted-foreground")}>
                     #{ticket.ticketNumber} · {ticket.queue?.name}
                   </span>
-                  <span className="text-muted-foreground text-[11px]">
+                  <span className={cn("text-[11px]", isActive ? "text-white/75" : "text-muted-foreground")}>
                     {formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true, locale: ptBR })}
                   </span>
                 </button>
