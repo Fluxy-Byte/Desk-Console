@@ -166,7 +166,7 @@ export function DeskLayout() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-2">
-          <p className="text-muted-foreground px-1 pt-1 pb-2 text-xs font-medium tracking-wide uppercase">Meus tickets</p>
+          <p className="text-muted-foreground px-1 pt-1 pb-2 text-center text-xs font-medium tracking-wide uppercase">Meus tickets</p>
           <div className="flex flex-col gap-2">
             {mine?.map((ticket) => {
               const isUnread = unreadTicketIds.has(ticket.id);
@@ -176,8 +176,8 @@ export function DeskLayout() {
                   key={ticket.id}
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
-                    "bg-card border-border/60 flex w-full flex-col items-start gap-0.5 rounded-xl border p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
-                    isActive && "border-2 border-[#82cf34] bg-[#82cf34]/10 shadow-sm",
+                    "bg-card border-border/60 flex w-full flex-col items-start gap-0.5 rounded-lg border p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+                    isActive && "border-transparent bg-muted shadow-md",
                   )}
                 >
                   <span className="flex w-full items-center gap-1.5">
