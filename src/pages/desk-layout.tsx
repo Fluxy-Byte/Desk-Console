@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import useSWR from "swr";
-import { History, LogOut, Send } from "lucide-react";
+import { History, LogOut, Send, Ticket as TicketIcon } from "lucide-react";
 import { toast } from "sonner";
 import fluxyLogo from "@/assets/Logo.png";
 import { Button } from "@/components/ui/button";
@@ -166,7 +166,7 @@ export function DeskLayout() {
             <span className="text-muted-foreground text-sm">Tickets Aguardando</span>
           </div>
           <Button className="h-10 w-full" disabled={waitingCount === 0 || pulling} onClick={handlePullNext}>
-            {pulling ? "Puxando..." : "Puxar ticket"}
+            <TicketIcon className="size-4" /> {pulling ? "Puxando..." : "Puxar ticket"}
           </Button>
           {dispatchQueues.length > 0 && (
             <Button className="h-10 w-full" variant="outline" onClick={() => navigate("/dispatch/new")}>
@@ -186,8 +186,8 @@ export function DeskLayout() {
                   key={ticket.id}
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
-                    "flex w-full flex-col items-start gap-1 rounded-md border p-3 text-left shadow-lg transition-all hover:-translate-y-0.5",
-                    isActive ? "border-transparent bg-gradient-to-br from-orange-500 to-pink-500" : "border-border bg-white",
+                    "flex w-full flex-col items-start gap-1 rounded-md p-3 text-left transition-all hover:-translate-y-0.5",
+                    isActive ? "bg-primary shadow-lg" : "bg-transparent hover:shadow-md",
                   )}
                 >
                   <span className="flex w-full items-center justify-between gap-2">
