@@ -153,11 +153,6 @@ export function DeskLayout() {
                 variant={attendantStatus === status ? "default" : "outline"}
                 disabled={changingStatus}
                 onClick={() => handleStatusChange(status)}
-                className={
-                  status === "ONLINE" && attendantStatus === status
-                    ? "bg-gradient-to-br from-orange-500 via-orange-500 via-70% to-pink-500 text-white"
-                    : undefined
-                }
               >
                 {STATUS_LABELS[status]}
               </Button>
@@ -170,11 +165,7 @@ export function DeskLayout() {
             <span className="text-primary font-[family-name:var(--font-display)] text-2xl font-bold">{waitingCount}</span>
             <span className="text-muted-foreground text-sm">Tickets Aguardando</span>
           </div>
-          <Button
-            className="h-10 w-full bg-gradient-to-br from-orange-500 via-orange-500 via-70% to-pink-500 text-white"
-            disabled={waitingCount === 0 || pulling}
-            onClick={handlePullNext}
-          >
+          <Button className="h-10 w-full" disabled={waitingCount === 0 || pulling} onClick={handlePullNext}>
             {pulling ? "Puxando..." : "Puxar ticket"}
           </Button>
           {dispatchQueues.length > 0 && (
@@ -196,9 +187,7 @@ export function DeskLayout() {
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
                   className={cn(
                     "border-border flex w-full flex-col items-start gap-1 rounded-md border p-3 text-left shadow-lg transition-all hover:-translate-y-0.5",
-                    isActive
-                      ? "bg-gradient-to-br from-orange-500 via-orange-500 via-70% to-pink-500"
-                      : "bg-white",
+                    isActive ? "bg-primary" : "bg-white",
                   )}
                 >
                   <span className="flex w-full items-center justify-between gap-2">
