@@ -101,6 +101,7 @@ export interface RelatedTicket {
   ticketNumber: number;
   createdAt: string;
   closedAt: string | null;
+  assignedUser: { name: string } | null;
 }
 
 export interface TicketDetail extends Ticket {

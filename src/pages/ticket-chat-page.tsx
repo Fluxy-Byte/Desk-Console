@@ -512,16 +512,37 @@ interface TimelineEntry {
   node: ReactNode;
 }
 
-/// Intercala o histórico completo da sessão com marcadores de abertura/
-/// encerramento de cada ticket que já passou por essa mesma conversa
-/// (reabertura, etc.) — o atendente vê o contexto inteiro, não só a fatia
-/// deste ticket, com marcação clara de onde um atendimento terminou e o
-/// outro começou.
+/// Mensagem não guarda quem exatamente respondeu (o Mongo não sabe qual
+/// atendente — só o Postgres, via Ticket) — aproxima pelo ticket cuja janela
+/// [createdAt, closedAt] contém o horário da mensagem, já que só um
+/// atendente por vez fica com um ticket em aberto. Sem isso, todo o
+/// histórico do contato apareceria atribuído ao atendente do ticket atual,
+/// mesmo mensagens respondidas por outra pessoa num atendimento anterior.
+function resolveAttendantName(messageCreatedAt: string, relatedTickets: RelatedTicket[], fallback?: string): string {
+  const messageTime = new Date(messageCreatedAt).getTime();
+  const ticket = relatedTickets.find((t) => {
+    const opened = new Date(t.createdAt).getTime();
+    const closed = t.closedAt ? new Date(t.closedAt).getTime() : Infinity;
+    return messageTime >= opened && messageTime <= closed;
+  });
+  return ticket?.assignedUser?.name ?? fallback ?? "Atendente";
+}
+
+/// Intercala o histórico completo do CONTATO (todas as sessões, não só a
+/// deste ticket) com marcadores de abertura/encerramento de cada ticket já
+/// aberto pra ele — o atendente vê o contexto inteiro, com marcação clara de
+/// onde um atendimento terminou e o outro começou.
 function buildTimeline(history: MessageDocument[], relatedTickets: RelatedTicket[], attendantName?: string): TimelineEntry[] {
   const entries: TimelineEntry[] = history.map((message) => ({
     key: message._id,
     createdAt: message.createdAt,
-    node: <MessageBubble key={message._id} message={message} attendantName={attendantName} />,
+    node: (
+      <MessageBubble
+        key={message._id}
+        message={message}
+        attendantName={resolveAttendantName(message.createdAt, relatedTickets, attendantName)}
+      />
+    ),
   }));
 
   for (const t of relatedTickets) {
