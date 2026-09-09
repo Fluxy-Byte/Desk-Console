@@ -165,11 +165,7 @@ export function DeskLayout() {
             <span className="text-primary font-[family-name:var(--font-display)] text-2xl font-bold">{waitingCount}</span>
             <span className="text-muted-foreground text-sm">Tickets Aguardando</span>
           </div>
-          <Button
-            className="h-10 w-full bg-gradient-to-br from-orange-500 to-pink-500 text-white"
-            disabled={waitingCount === 0 || pulling}
-            onClick={handlePullNext}
-          >
+          <Button className="h-10 w-full" disabled={waitingCount === 0 || pulling} onClick={handlePullNext}>
             {pulling ? "Puxando..." : "Puxar ticket"}
           </Button>
           {dispatchQueues.length > 0 && (
