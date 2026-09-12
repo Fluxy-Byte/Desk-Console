@@ -45,6 +45,12 @@ export interface TicketCloseTag {
   name: string;
 }
 
+export interface PreConfiguredMessage {
+  id: string;
+  name: string;
+  content: string;
+}
+
 export interface Ticket {
   id: string;
   ticketNumber: number;

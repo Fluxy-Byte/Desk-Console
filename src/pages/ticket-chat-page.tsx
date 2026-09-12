@@ -1,7 +1,7 @@
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useSWR from "swr";
-import { ArrowRightLeft, HelpCircle, LogIn, LogOut, Paperclip, Send } from "lucide-react";
+import { ArrowRightLeft, HelpCircle, LogIn, LogOut, Paperclip, Send, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { ApiError, api } from "@/lib/api";
 import { useRealtimeEvent } from "@/lib/realtime";
 import { useAppSelector } from "@/store/hooks";
-import type { MessageDocument, MessageType, Queue, RelatedTicket, TicketDetail } from "@/types/domain";
+import type { MessageDocument, MessageType, PreConfiguredMessage, Queue, RelatedTicket, TicketDetail } from "@/types/domain";
+
+/// **negrito** é a sintaxe usada pro admin compor a mensagem no Agent Console
+/// — convertido pro *negrito* de verdade do WhatsApp só aqui, na hora de cair
+/// no campo de texto do atendente. Nunca persistir já convertido.
+function convertBoldToWhatsapp(text: string): string {
+  return text.replace(/\*\*(.+?)\*\*/g, "*$1*");
+}
 
 // A Cloud API mantém o indicador "digitando..." ativo por ~25s — reenviar a
 // cada 8s enquanto o atendente digita mantém aceso sem virar spam de request.
@@ -83,6 +90,9 @@ export function TicketChatPage() {
   const [closeTags, setCloseTags] = useState<{ id: string; name: string }[]>([]);
   const [requireCloseTag, setRequireCloseTag] = useState(false);
   const [selectedCloseTagId, setSelectedCloseTagId] = useState<string | undefined>(undefined);
+  const [quickMessagesOpen, setQuickMessagesOpen] = useState(false);
+  const [loadingQuickMessages, setLoadingQuickMessages] = useState(false);
+  const [quickMessages, setQuickMessages] = useState<PreConfiguredMessage[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -265,6 +275,25 @@ export function TicketChatPage() {
     } finally {
       setClosing(false);
     }
+  }
+
+  async function openQuickMessagesDialog() {
+    setQuickMessagesOpen(true);
+    if (!id) return;
+    setLoadingQuickMessages(true);
+    try {
+      const result = await api.get<PreConfiguredMessage[]>(`/tickets/${id}/pre-configured-messages`);
+      setQuickMessages(result);
+    } catch {
+      setQuickMessages([]);
+    } finally {
+      setLoadingQuickMessages(false);
+    }
+  }
+
+  function applyQuickMessage(message: PreConfiguredMessage) {
+    setText(convertBoldToWhatsapp(message.content));
+    setQuickMessagesOpen(false);
   }
 
   async function handleTransferQueue(queueId: string) {
@@ -471,6 +500,45 @@ export function TicketChatPage() {
                     >
                       <Paperclip className="size-4" />
                     </Button>
+                    <Dialog
+                      open={quickMessagesOpen}
+                      onOpenChange={(open) => (open ? openQuickMessagesDialog() : setQuickMessagesOpen(false))}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="size-12 shrink-0"
+                          aria-label="Mensagens rápidas"
+                        >
+                          <Zap className="size-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Mensagens rápidas</DialogTitle>
+                          <DialogDescription>Escolha uma mensagem pré-configurada pra esta fila.</DialogDescription>
+                        </DialogHeader>
+                        <div className="flex max-h-80 flex-col gap-2 overflow-y-auto">
+                          {loadingQuickMessages && <p className="text-muted-foreground text-sm">Carregando…</p>}
+                          {!loadingQuickMessages && quickMessages.length === 0 && (
+                            <p className="text-muted-foreground text-sm">Nenhuma mensagem pré-configurada pra esta fila.</p>
+                          )}
+                          {quickMessages.map((message) => (
+                            <button
+                              key={message.id}
+                              type="button"
+                              onClick={() => applyQuickMessage(message)}
+                              className="border-border hover:bg-accent rounded-lg border p-3 text-left transition-colors"
+                            >
+                              <p className="text-sm font-medium">{message.name}</p>
+                              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{message.content}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                   <Textarea
                     rows={1}
