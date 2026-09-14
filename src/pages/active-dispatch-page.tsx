@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { ArrowLeft, Send } from "lucide-react";
+import fundoWhatsApp from "@/assets/FundoWhatsApp.jpg";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,9 +20,21 @@ const CATEGORY_LABEL: Record<string, string> = {
   AUTHENTICATION: "Autenticação",
 };
 
-function highlightVariables(text: string | undefined): string {
+/// Sem `values`: mostra o placeholder "[Variável N]". Com `values`: substitui
+/// pelo valor já digitado no formulário, pra dar pra ver como a mensagem fica
+/// de verdade (aqui é sempre 1 contato, então sempre dá pra pré-visualizar).
+function highlightVariables(text: string | undefined, values?: string[]): string {
   if (!text) return "";
-  return text.replace(/\{\{(\d+)\}\}/g, "[Variável $1]");
+  return text.replace(/\{\{(\d+)\}\}/g, (match, n: string) => {
+    const value = values?.[Number(n) - 1];
+    return value ? value : `[Variável ${n}]`;
+  });
+}
+
+/// Trecho entre *asteriscos simples* (formatação de negrito do WhatsApp) vira
+/// <strong> de verdade na pré-visualização, em vez de mostrar os asteriscos.
+function renderBold(text: string): ReactNode {
+  return text.split(/\*(.+?)\*/g).map((part, i) => (i % 2 === 1 ? <strong key={i}>{part}</strong> : part));
 }
 
 /// Igual à tela "Nova campanha" do Agent Console (template + preview +
@@ -217,11 +230,30 @@ export function ActiveDispatchPage() {
             <CardDescription>Confira como a mensagem vai chegar pro cliente e preencha as variáveis do template.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 sm:flex-row">
-            <div className="flex flex-1 items-start justify-center rounded-lg bg-[#e5ddd5] p-6 dark:bg-[#0b141a]">
-              <div className="flex max-w-sm flex-col gap-1 rounded-lg bg-white p-3 text-sm text-black shadow-md dark:bg-[#202c33] dark:text-white">
-                {headerComponent?.text && <p className="font-semibold">{highlightVariables(headerComponent.text)}</p>}
-                {bodyComponent?.text && <p className="whitespace-pre-wrap">{highlightVariables(bodyComponent.text)}</p>}
-                {footerComponent?.text && <p className="text-xs text-gray-500 dark:text-gray-400">{footerComponent.text}</p>}
+            <div
+              className="flex flex-1 items-start justify-center rounded-lg bg-[#e5ddd5] bg-repeat bg-[length:320px] p-6 [background-image:var(--wa-bg)]"
+              style={{ "--wa-bg": `url(${fundoWhatsApp})` } as React.CSSProperties}
+            >
+              <div className="relative flex max-w-sm flex-col gap-1 rounded-lg rounded-tr-none bg-[#d9fdd3] p-3 text-sm text-black shadow-md dark:bg-[#005c4b] dark:text-white">
+                <div className="absolute top-0 right-0 size-0 translate-x-full border-t-8 border-r-8 border-t-[#d9fdd3] border-r-transparent dark:border-t-[#005c4b]" />
+                {headerComponent?.text && (
+                  <p className="font-semibold">
+                    {renderBold(highlightVariables(headerComponent.text, headerCount > 0 ? variables.slice(0, headerCount) : undefined))}
+                  </p>
+                )}
+                {bodyComponent?.text && (
+                  <p className="whitespace-pre-wrap">
+                    {renderBold(
+                      highlightVariables(bodyComponent.text, bodyCount > 0 ? variables.slice(headerCount, headerCount + bodyCount) : undefined),
+                    )}
+                  </p>
+                )}
+                {footerComponent?.text && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{renderBold(footerComponent.text)}</p>
+                )}
+                <p className="text-right text-[10px] text-gray-500 dark:text-gray-400">
+                  {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                </p>
                 {buttonsComponent?.buttons && buttonsComponent.buttons.length > 0 && (
                   <div className="mt-1 flex flex-col gap-1 border-t border-gray-200 pt-1 dark:border-gray-600">
                     {buttonsComponent.buttons.map((b, i) => (
