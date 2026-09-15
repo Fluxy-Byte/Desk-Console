@@ -2,8 +2,17 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Reply, Send } from "lucide-react";
 import fundoWhatsApp from "@/assets/FundoWhatsApp.jpg";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +58,8 @@ export function ActiveDispatchPage() {
   const [queueId, setQueueId] = useState("");
   const [templateName, setTemplateName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [checkingBlocked, setCheckingBlocked] = useState(false);
+  const [blockedNotice, setBlockedNotice] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [contactMode, setContactMode] = useState<"existing" | "new">("existing");
@@ -106,19 +117,42 @@ export function ActiveDispatchPage() {
   const hasContact = contactMode === "existing" ? Boolean(selectedTarget) : newPhoneDigits.length >= 8;
 
   const canSubmit = Boolean(
-    queueId && selectedTemplate && hasContact && !submitting && newErrors.length === 0 && !missingVariable,
+    queueId &&
+      selectedTemplate &&
+      hasContact &&
+      !submitting &&
+      !checkingBlocked &&
+      newErrors.length === 0 &&
+      !missingVariable,
   );
 
   async function handleSubmit() {
     if (!selectedTemplate) return;
     setError(null);
-    setSubmitting(true);
 
     const contact =
       contactMode === "existing" && selectedTarget
         ? { phone: selectedTarget.waId, name: selectedTarget.name ?? undefined, email: selectedTarget.email ?? undefined }
         : { phone: newPhoneDigits, name: newName.trim() || undefined, email: newEmail.trim() || undefined };
 
+    setCheckingBlocked(true);
+    try {
+      const { blocked } = await api.post<{ blocked: boolean }>("/dispatch/check-blocked", {
+        queueId,
+        phone: contact.phone,
+      });
+      if (blocked) {
+        setBlockedNotice(true);
+        return;
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível verificar o contato.");
+      return;
+    } finally {
+      setCheckingBlocked(false);
+    }
+
+    setSubmitting(true);
     try {
       await api.post("/dispatch", {
         queueId,
@@ -146,6 +180,21 @@ export function ActiveDispatchPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
+      <AlertDialog open={blockedNotice} onOpenChange={setBlockedNotice}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Contato bloqueado para campanha</AlertDialogTitle>
+            <AlertDialogDescription>
+              Este contato já pediu para não receber mais mensagens de campanha desta rede social. O disparo não foi
+              enviado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Entendi</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit gap-2 px-2">
         <ArrowLeft className="size-4" /> Voltar
       </Button>
@@ -234,35 +283,35 @@ export function ActiveDispatchPage() {
               className="flex flex-1 items-start justify-center rounded-lg bg-[#e5ddd5] bg-repeat bg-[length:320px] p-6 [background-image:var(--wa-bg)]"
               style={{ "--wa-bg": `url(${fundoWhatsApp})` } as React.CSSProperties}
             >
-              <div className="relative flex max-w-sm flex-col gap-1 rounded-lg rounded-tr-none bg-[#d9fdd3] p-3 text-sm text-black shadow-md dark:bg-[#005c4b] dark:text-white">
-                <div className="absolute top-0 right-0 size-0 translate-x-full border-t-8 border-r-8 border-t-[#d9fdd3] border-r-transparent dark:border-t-[#005c4b]" />
-                {headerComponent?.text && (
-                  <p className="font-semibold">
-                    {renderBold(highlightVariables(headerComponent.text, headerCount > 0 ? variables.slice(0, headerCount) : undefined))}
+              <div className="flex max-w-sm flex-col gap-[3px]">
+                <div className="relative flex flex-col gap-1 rounded-lg rounded-tr-none bg-white p-3 text-sm text-black shadow-md">
+                  <div className="absolute top-0 right-0 size-0 translate-x-full border-t-8 border-r-8 border-t-white border-r-transparent" />
+                  {headerComponent?.text && (
+                    <p className="font-semibold">
+                      {renderBold(highlightVariables(headerComponent.text, headerCount > 0 ? variables.slice(0, headerCount) : undefined))}
+                    </p>
+                  )}
+                  {bodyComponent?.text && (
+                    <p className="whitespace-pre-wrap">
+                      {renderBold(
+                        highlightVariables(bodyComponent.text, bodyCount > 0 ? variables.slice(headerCount, headerCount + bodyCount) : undefined),
+                      )}
+                    </p>
+                  )}
+                  {footerComponent?.text && <p className="text-xs text-gray-500">{renderBold(footerComponent.text)}</p>}
+                  <p className="text-right text-[10px] text-gray-500">
+                    {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                   </p>
-                )}
-                {bodyComponent?.text && (
-                  <p className="whitespace-pre-wrap">
-                    {renderBold(
-                      highlightVariables(bodyComponent.text, bodyCount > 0 ? variables.slice(headerCount, headerCount + bodyCount) : undefined),
-                    )}
-                  </p>
-                )}
-                {footerComponent?.text && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{renderBold(footerComponent.text)}</p>
-                )}
-                <p className="text-right text-[10px] text-gray-500 dark:text-gray-400">
-                  {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                </p>
-                {buttonsComponent?.buttons && buttonsComponent.buttons.length > 0 && (
-                  <div className="mt-1 flex flex-col gap-1 border-t border-gray-200 pt-1 dark:border-gray-600">
-                    {buttonsComponent.buttons.map((b, i) => (
-                      <span key={i} className="text-center text-sm text-blue-600 dark:text-blue-400">
-                        {b.text}
-                      </span>
-                    ))}
+                </div>
+                {buttonsComponent?.buttons?.map((b, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-center gap-1.5 rounded-lg bg-white py-2 text-center text-sm font-medium text-blue-600 shadow-md"
+                  >
+                    <Reply className="size-4" />
+                    {b.text}
                   </div>
-                )}
+                ))}
               </div>
             </div>
             <div className="flex flex-1 flex-col gap-3 text-sm">
@@ -401,7 +450,7 @@ export function ActiveDispatchPage() {
 
             <Button type="button" disabled={!canSubmit} onClick={handleSubmit} className="w-fit gap-2">
               <Send className="size-4" />
-              {submitting ? "Disparando…" : "Disparar"}
+              {checkingBlocked ? "Verificando contato…" : submitting ? "Disparando…" : "Disparar"}
             </Button>
           </CardContent>
         </Card>
