@@ -64,7 +64,7 @@ export function ActiveDispatchPage() {
   const whatsappChannelId = selectedQueue?.serviceIsland?.whatsappChannelId;
 
   const { data: templates, error: templatesError } = useSWR<Template[]>(
-    whatsappChannelId ? `/whatsapp-channels/${whatsappChannelId}/templates` : null,
+    whatsappChannelId ? `/channels/${whatsappChannelId}/templates` : null,
   );
 
   const selectedTemplate = templates?.find((t) => t.name === templateName) ?? null;
