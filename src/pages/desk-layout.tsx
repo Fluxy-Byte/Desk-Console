@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { History, LogOut, Send, Ticket as TicketIcon } from "lucide-react";
 import { toast } from "sonner";
-import fluxyLogo from "@/assets/Logo.png";
+import fluxyLogo from "@/assets/IconeAzulSemFundo.png";
 import { Button } from "@/components/ui/button";
 import { ApiError, api } from "@/lib/api";
 import { authStorage } from "@/lib/auth-storage";
@@ -126,8 +126,8 @@ export function DeskLayout() {
       <aside className="bg-sidebar-gradient border-border flex w-72 shrink-0 flex-col border-r">
         <div className="border-border flex items-center justify-between border-b px-4 py-3">
           <div className="flex items-center gap-2">
-            <img src={fluxyLogo} alt="Fluxy" className="size-6 rounded-md" />
-            <h1 className="font-[family-name:var(--font-display)] text-lg font-semibold">Fluxy Desk</h1>
+            <img src={fluxyLogo} alt="Sturnus Desk" className="size-6 object-contain" />
+            <h1 className="font-[family-name:var(--font-display)] text-lg font-semibold">Sturnus Desk</h1>
           </div>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" aria-label="Histórico" onClick={() => navigate("/history")}>

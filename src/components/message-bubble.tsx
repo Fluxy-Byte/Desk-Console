@@ -15,23 +15,30 @@ export function MessageBubble({
   message,
   attendantName,
   pending,
+  agentBubbleClassName = "bg-[#1E56E9]/10",
+  agentTextClassName = "text-black",
 }: {
   message: MessageDocument;
   attendantName?: string;
   pending?: boolean;
+  /** Cor do balão pra mensagens de IA/atendente/sistema — default usado onde
+   * não houver override específico da tela. */
+  agentBubbleClassName?: string;
+  /** Cor do texto pra mensagens de IA/atendente/sistema. */
+  agentTextClassName?: string;
 }) {
   const isCustomer = message.senderType === "CUSTOMER";
+  const isAgentOrHuman =
+    message.senderType === "AGENT_AI" || message.senderType === "ATTENDANT" || message.senderType === "SYSTEM";
   const dateTime = format(new Date(message.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
   const sender = senderLabel(message, attendantName);
 
   return (
     <div className={`flex flex-col gap-1 ${isCustomer ? "items-start" : "items-end"}`}>
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-lg ${pending ? "opacity-60" : ""} ${
-          isCustomer
-            ? "rounded-tl-none bg-muted text-foreground shadow-black/10"
-            : "rounded-tr-none bg-primary text-primary-foreground shadow-primary/40"
-        }`}
+        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-lg shadow-black/10 ${
+          isAgentOrHuman ? `${agentBubbleClassName} ${agentTextClassName}` : "bg-white text-black"
+        } ${pending ? "opacity-60" : ""} ${isCustomer ? "rounded-tl-none" : "rounded-tr-none"}`}
       >
         <MessageContent message={message} />
       </div>

@@ -2,7 +2,7 @@ import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import capaImage from "@/assets/Capa.jpg";
-import logoImage from "@/assets/Logo.png";
+import logoImage from "@/assets/IconeAzulSemFundo.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -81,15 +81,15 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen">
       <div className="hidden lg:block lg:w-1/2">
-        <img src={capaImage} alt="Fluxy Desk" className="h-full w-full object-cover object-[center_25%]" />
+        <img src={capaImage} alt="Sturnus Desk" className="h-full w-full object-cover object-[center_25%]" />
       </div>
 
       <div className="bg-dot-grid flex flex-1 items-center justify-center p-4">
         <Card className="w-3/4 max-w-2xl shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <img src={logoImage} alt="Fluxy" className="size-7 rounded-md" />
-              Fluxy Desk
+              <img src={logoImage} alt="Sturnus Desk" className="size-7 object-contain" />
+              Sturnus Desk
             </CardTitle>
             <CardDescription>Atendimento humano em tempo real.</CardDescription>
           </CardHeader>

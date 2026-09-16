@@ -47,11 +47,17 @@ export function TicketHistoryDetailDialog({ ticketId, onOpenChange }: TicketHist
                 </div>
               </div>
 
-              <div className="flex min-h-0 flex-col overflow-y-auto p-4">
+              <div className="flex min-h-0 flex-col overflow-y-auto bg-[#F4F1EA] p-4">
                 <h3 className="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">Conversa</h3>
                 <div className="flex flex-col gap-3">
                   {ticket.history.map((message) => (
-                    <MessageBubble key={message._id} message={message} attendantName={userName} />
+                    <MessageBubble
+                      key={message._id}
+                      message={message}
+                      attendantName={userName}
+                      agentBubbleClassName="bg-[#D6FDD0]"
+                      agentTextClassName="text-black"
+                    />
                   ))}
                   {ticket.history.length === 0 && (
                     <p className="text-muted-foreground text-sm">Nenhuma mensagem encontrada.</p>

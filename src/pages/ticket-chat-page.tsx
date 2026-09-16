@@ -440,14 +440,21 @@ export function TicketChatPage() {
 
       <div className="flex min-h-0 flex-1">
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto bg-[#F4F1EA] p-4">
             <div className="mx-auto flex max-w-2xl flex-col gap-3">
               {ticket.history.length === 0 && pendingMessages.length === 0 && (
                 <p className="text-muted-foreground py-8 text-center text-sm">Nenhuma mensagem ainda.</p>
               )}
               {buildTimeline(ticket.history, ticket.relatedTickets, assignedAttendantName).map((entry) => entry.node)}
               {pendingMessages.map((msg) => (
-                <MessageBubble key={msg._id} message={msg} attendantName={assignedAttendantName} pending />
+                <MessageBubble
+                  key={msg._id}
+                  message={msg}
+                  attendantName={assignedAttendantName}
+                  pending
+                  agentBubbleClassName="bg-[#D6FDD0]"
+                  agentTextClassName="text-black"
+                />
               ))}
               <div ref={bottomRef} />
             </div>
@@ -613,6 +620,8 @@ function buildTimeline(history: MessageDocument[], relatedTickets: RelatedTicket
         key={message._id}
         message={message}
         attendantName={resolveAttendantName(message.createdAt, relatedTickets, attendantName)}
+        agentBubbleClassName="bg-[#D6FDD0]"
+        agentTextClassName="text-black"
       />
     ),
   }));
