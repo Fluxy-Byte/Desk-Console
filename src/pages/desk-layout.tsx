@@ -4,6 +4,8 @@ import useSWR from "swr";
 import { History, LogOut, Send, Ticket as TicketIcon } from "lucide-react";
 import { toast } from "sonner";
 import fluxyLogo from "@/assets/IconeAzulSemFundo.png";
+import newTicketSound from "@/assets/NotificationNewTicket.mp3";
+import newMessageSound from "@/assets/NotificationMensage.mp3";
 import { Button } from "@/components/ui/button";
 import { ApiError, api } from "@/lib/api";
 import { authStorage } from "@/lib/auth-storage";
@@ -15,6 +17,20 @@ import type { Queue, Ticket } from "@/types/domain";
 
 const STATUS_LABELS: Record<AttendantStatus, string> = { ONLINE: "Online", PAUSED: "Pausa", OFFLINE: "Offline" };
 const STATUS_DOT: Record<AttendantStatus, string> = { ONLINE: "bg-emerald-500", PAUSED: "bg-amber-500", OFFLINE: "bg-muted-foreground" };
+
+// Um <audio> por som, reaproveitado entre eventos (não recriado a cada
+// disparo) — reseta currentTime antes de tocar pra suportar disparos em
+// sequência rápida sem esperar o som anterior acabar.
+function playNotification(audio: HTMLAudioElement) {
+  audio.currentTime = 0;
+  void audio.play().catch(() => {
+    // navegador bloqueou autoplay (raro aqui, já que só toca após alguma
+    // interação do usuário logado) — sem som mesmo, não é erro pra reportar.
+  });
+}
+
+const newTicketAudio = new Audio(newTicketSound);
+const newMessageAudio = new Audio(newMessageSound);
 
 // "Agora" pro que acabou de chegar (menos de 1 min), senão hora cheia em
 // 12h com AM/PM — igual ao pedido, sem depender do locale do date-fns.
@@ -63,9 +79,18 @@ export function DeskLayout() {
     mutateWaiting();
     mutateMine();
 
-    if (event.type === "ticket_message" && event.ticketId && event.ticketId !== activeTicketId) {
-      const ticketId = event.ticketId;
-      setUnreadTicketIds((prev) => (prev.has(ticketId) ? prev : new Set(prev).add(ticketId)));
+    if (event.type === "ticket_new") {
+      playNotification(newTicketAudio);
+    }
+
+    if (event.type === "ticket_message") {
+      const payload = event.payload as { senderType?: "CLIENT" | "ATTENDANT" } | undefined;
+      if (payload?.senderType === "CLIENT") playNotification(newMessageAudio);
+
+      if (event.ticketId && event.ticketId !== activeTicketId) {
+        const ticketId = event.ticketId;
+        setUnreadTicketIds((prev) => (prev.has(ticketId) ? prev : new Set(prev).add(ticketId)));
+      }
     }
   });
 
