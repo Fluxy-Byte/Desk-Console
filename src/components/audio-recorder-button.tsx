@@ -3,11 +3,12 @@ import { Check, Mic, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-/// Melhor formato que o navegador sabe gravar, na ordem do que a Meta aceita
-/// direto (OGG/Opus no Firefox, MP4/AAC no Safari). Chrome/Edge só gravam
-/// WebM/Opus — a Meta rejeita, então o Outbound-Worker converte pra OGG/Opus
-/// com ffmpeg antes de enviar (ver prepare-audio.ts).
-const PREFERRED_MIME_TYPES = ["audio/ogg;codecs=opus", "audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
+/// Melhor formato que o navegador sabe gravar. OGG/Opus (Firefox) a Meta aceita
+/// direto; WebM/Opus (Chrome/Edge) e MP4 (Safari, e Chrome recente — com Opus,
+/// que a Meta rejeita) o Outbound-Worker converte pra OGG/Opus com ffmpeg
+/// antes de enviar (ver prepare-audio.ts). MP4 fica por último: só entra quando
+/// o navegador não sabe gravar nenhum dos outros.
+const PREFERRED_MIME_TYPES = ["audio/ogg;codecs=opus", "audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
 
 /// Teto de segurança — o limite da Meta pra áudio é 16MB, bem acima disso pra
 /// voz, mas gravação esquecida aberta não deve crescer sem fim.
