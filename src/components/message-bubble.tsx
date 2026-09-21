@@ -63,11 +63,31 @@ export function MessageStatusTick({ status }: { status?: "sent" | "delivered" | 
 }
 
 export function MessageContent({ message }: { message: MessageDocument }) {
+  const caption = message.text?.trim();
+
   if (message.messageType === "IMAGE" && message.mediaUrl) {
-    return <img src={message.mediaUrl} alt={message.text || "Imagem"} className="max-w-full rounded-lg" />;
+    return (
+      <div className="flex flex-col gap-1">
+        <a href={message.mediaUrl} target="_blank" rel="noreferrer">
+          <img src={message.mediaUrl} alt={caption || "Imagem"} className="max-h-80 max-w-full rounded-lg object-contain" />
+        </a>
+        {caption && <p className="whitespace-pre-wrap">{caption}</p>}
+      </div>
+    );
+  }
+  if (message.messageType === "VIDEO" && message.mediaUrl) {
+    return (
+      <div className="flex flex-col gap-1">
+        <video controls preload="metadata" src={message.mediaUrl} className="max-h-80 max-w-full rounded-lg" />
+        {caption && <p className="whitespace-pre-wrap">{caption}</p>}
+      </div>
+    );
+  }
+  if (message.messageType === "STICKER" && message.mediaUrl) {
+    return <img src={message.mediaUrl} alt="Figurinha" className="size-32 object-contain" />;
   }
   if (message.messageType === "AUDIO" && message.mediaUrl) {
-    return <audio controls src={message.mediaUrl} className="max-w-full" />;
+    return <audio controls preload="metadata" src={message.mediaUrl} className="max-w-full" />;
   }
   if (message.messageType === "DOCUMENT" && message.mediaUrl) {
     return (
@@ -76,7 +96,13 @@ export function MessageContent({ message }: { message: MessageDocument }) {
       </a>
     );
   }
-  if ((message.messageType === "IMAGE" || message.messageType === "AUDIO" || message.messageType === "STICKER") && !message.mediaUrl) {
+  if (
+    (message.messageType === "IMAGE" ||
+      message.messageType === "AUDIO" ||
+      message.messageType === "VIDEO" ||
+      message.messageType === "STICKER") &&
+    !message.mediaUrl
+  ) {
     return <Badge variant="outline">Mídia indisponível</Badge>;
   }
   return <p className="whitespace-pre-wrap">{message.text}</p>;

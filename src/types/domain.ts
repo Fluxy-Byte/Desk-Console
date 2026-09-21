@@ -1,12 +1,12 @@
 export type TicketStatus = "WAITING" | "IN_PROGRESS" | "CLOSED";
-export type MessageType = "TEXT" | "AUDIO" | "IMAGE" | "DOCUMENT" | "STICKER";
+export type MessageType = "TEXT" | "AUDIO" | "IMAGE" | "DOCUMENT" | "STICKER" | "VIDEO";
 
 export interface Queue {
   id: string;
   serviceIslandId: string;
   name: string;
   members?: { id: string; userId: string; user: { id: string; name: string; email: string } }[];
-  serviceIsland?: { id: string; allowActiveDispatch: boolean; whatsappChannelId: string };
+  serviceIsland?: { id: string; allowActiveDispatch: boolean; allowAudioMessages?: boolean; whatsappChannelId: string };
 }
 
 export interface Target {

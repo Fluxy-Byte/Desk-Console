@@ -5,6 +5,7 @@ import { ArrowRightLeft, HelpCircle, LogIn, LogOut, Paperclip, Send, Zap } from 
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AudioRecorderButton } from "@/components/audio-recorder-button";
 import { ContactInfoCard } from "@/components/contact-info-card";
 import { MessageBubble } from "@/components/message-bubble";
 import { MetadataEditor } from "@/components/metadata-editor";
@@ -41,9 +42,12 @@ const MB = 1024 * 1024;
 
 // Limites oficiais da Meta Cloud API — passar disso faz o envio ser
 // rejeitado na hora de chamar a Graph API (ver Outbound-Worker).
-const MEDIA_LIMITS: Record<"IMAGE" | "AUDIO" | "DOCUMENT", { label: string; maxSizeMb: number }> = {
+const MEDIA_LIMITS: Record<"IMAGE" | "AUDIO" | "VIDEO" | "STICKER" | "DOCUMENT", { label: string; maxSizeMb: number }> = {
   IMAGE: { label: "Imagem (JPEG, PNG)", maxSizeMb: 5 },
   AUDIO: { label: "Áudio (AAC, MP3, M4A, OGG/Opus, AMR)", maxSizeMb: 16 },
+  VIDEO: { label: "Vídeo (MP4, 3GPP)", maxSizeMb: 16 },
+  // 100KB estática / 500KB animada — usamos o teto da animada e a Meta valida o resto.
+  STICKER: { label: "Figurinha (WebP)", maxSizeMb: 0.5 },
   DOCUMENT: { label: "Documento (PDF, Word, Excel, PowerPoint, TXT)", maxSizeMb: 100 },
 };
 
@@ -93,6 +97,9 @@ export function TicketChatPage() {
   const [quickMessagesOpen, setQuickMessagesOpen] = useState(false);
   const [loadingQuickMessages, setLoadingQuickMessages] = useState(false);
   const [quickMessages, setQuickMessages] = useState<PreConfiguredMessage[]>([]);
+  // Switch "Permitir envio de áudio" da ilha do ticket — sem a informação
+  // (ticket ainda carregando) assume liberado; o Desk-API é quem barra de fato.
+  const audioAllowed = ticket?.queue?.serviceIsland?.allowAudioMessages !== false;
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -209,11 +216,28 @@ export function TicketChatPage() {
     event.target.value = "";
     if (!file || !id) return;
 
-    const messageType: MessageType = file.type.startsWith("image/")
+    if (file.type.startsWith("audio/") && !audioAllowed) {
+      toast.error("O envio de áudio está desativado para a ilha deste ticket.");
+      return;
+    }
+
+    // WebP não é aceito como imagem pela Meta — só como figurinha.
+    const messageType: MessageType = file.type === "image/webp"
+      ? "STICKER"
+      : file.type.startsWith("image/")
       ? "IMAGE"
       : file.type.startsWith("audio/")
         ? "AUDIO"
-        : "DOCUMENT";
+        : file.type.startsWith("video/")
+          ? "VIDEO"
+          : "DOCUMENT";
+
+    // A Meta só aceita vídeo em MP4 ou 3GPP (H.264 + AAC) — outros contêineres
+    // (mov, avi, webm, mkv) são rejeitados na Graph API.
+    if (messageType === "VIDEO" && file.type !== "video/mp4" && file.type !== "video/3gpp") {
+      toast.error("Vídeo em formato não aceito pelo WhatsApp. Use MP4 ou 3GPP.");
+      return;
+    }
 
     if (messageType === "DOCUMENT" && !isSupportedDocument(file)) {
       toast.error("Tipo de documento não aceito pelo WhatsApp. Veja os formatos suportados no ícone de ajuda ao lado do anexo.");
@@ -226,21 +250,35 @@ export function TicketChatPage() {
       return;
     }
 
+    await uploadAndSend(file, messageType, file.name);
+  }
+
+  /// Sobe o arquivo direto pro S3 (URL assinada) e só então referencia a URL
+  /// na mensagem — usado pelo anexo e pela gravação de áudio.
+  async function uploadAndSend(file: File, messageType: MessageType, text: string) {
     setUploading(true);
     try {
+      const contentType = file.type || "application/octet-stream";
       const { uploadUrl, mediaUrl } = await api.post<{ uploadUrl: string; mediaUrl: string }>("/uploads/presign", {
         fileName: file.name,
-        contentType: file.type || "application/octet-stream",
+        contentType,
       });
 
-      await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      const upload = await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": contentType } });
+      if (!upload.ok) throw new Error("upload");
 
-      await sendMessage({ text: file.name, messageType, mediaUrl });
+      await sendMessage({ text, messageType, mediaUrl });
     } catch {
       toast.error("Não foi possível enviar o arquivo.");
     } finally {
       setUploading(false);
     }
+  }
+
+  async function handleRecordedAudio(blob: Blob, mimeType: string) {
+    const extension = mimeType.includes("ogg") ? "ogg" : mimeType.includes("mp4") ? "m4a" : "webm";
+    const file = new File([blob], `audio-${Date.now()}.${extension}`, { type: mimeType });
+    await uploadAndSend(file, "AUDIO", "");
   }
 
   async function openCloseDialog() {
@@ -486,7 +524,9 @@ export function TicketChatPage() {
                           </DialogDescription>
                         </DialogHeader>
                         <div className="flex flex-col gap-3 text-sm">
-                          {Object.entries(MEDIA_LIMITS).map(([type, info]) => (
+                          {Object.entries(MEDIA_LIMITS)
+                            .filter(([type]) => audioAllowed || type !== "AUDIO")
+                            .map(([type, info]) => (
                             <div key={type} className="flex items-center justify-between gap-4">
                               <span>{info.label}</span>
                               <Badge variant="secondary" className="shrink-0">
@@ -507,6 +547,7 @@ export function TicketChatPage() {
                     >
                       <Paperclip className="size-4" />
                     </Button>
+                    {audioAllowed && <AudioRecorderButton disabled={uploading || sending} onRecorded={handleRecordedAudio} />}
                     <Dialog
                       open={quickMessagesOpen}
                       onOpenChange={(open) => (open ? openQuickMessagesDialog() : setQuickMessagesOpen(false))}
