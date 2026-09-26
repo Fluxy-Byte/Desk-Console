@@ -6,7 +6,23 @@ export interface Queue {
   serviceIslandId: string;
   name: string;
   members?: { id: string; userId: string; user: { id: string; name: string; email: string } }[];
-  serviceIsland?: { id: string; allowActiveDispatch: boolean; allowAudioMessages?: boolean; whatsappChannelId: string };
+  serviceIsland?: {
+    id: string;
+    allowActiveDispatch: boolean;
+    allowAudioMessages?: boolean;
+    /// Só vem em GET /tickets/:id — libera o botão "Carteiras" do contato.
+    allowAttendantCarteira?: boolean;
+    whatsappChannelId: string;
+  };
+}
+
+/// GET /tickets/:id/carteiras — carteiras da ilha do ticket, `checked` = o
+/// contato já está nela.
+export interface TicketCarteira {
+  id: string;
+  name: string;
+  checked: boolean;
+  queue: { id: string; name: string };
 }
 
 export interface Target {

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AudioRecorderButton } from "@/components/audio-recorder-button";
+import { CarteirasDialog } from "@/components/carteiras-dialog";
 import { ContactInfoCard } from "@/components/contact-info-card";
 import { MessageBubble } from "@/components/message-bubble";
 import { MetadataEditor } from "@/components/metadata-editor";
@@ -618,6 +619,9 @@ export function TicketChatPage() {
         {ticket.target && (
           <div className="border-border flex w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l p-4">
             <ContactInfoCard target={ticket.target} />
+            {ticket.queue?.serviceIsland?.allowAttendantCarteira && ticket.status !== "CLOSED" && (
+              <CarteirasDialog ticketId={ticket.id} />
+            )}
             <MetadataEditor targetId={ticket.target.id} metadata={ticket.target.metadata} onUpdated={() => mutate()} />
           </div>
         )}

@@ -5,12 +5,30 @@ import { AccordionItem } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { api } from "@/lib/api";
 
 interface MetadataEditorProps {
   targetId: string;
   metadata: Record<string, unknown> | null;
   onUpdated: () => void;
+}
+
+/// Chave e valor de metadado podem ser enormes — acima disso cortam com "…"
+/// e o texto inteiro aparece no tooltip.
+const METADATA_TEXT_MAX_LENGTH = 30;
+
+function TruncatedText({ text, className }: { text: string; className?: string }) {
+  if (text.length <= METADATA_TEXT_MAX_LENGTH) return <span className={className}>{text}</span>;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className={`${className ?? ""} cursor-help`}>{text.slice(0, METADATA_TEXT_MAX_LENGTH)}…</span>
+      </TooltipTrigger>
+      <TooltipContent side="left">{text}</TooltipContent>
+    </Tooltip>
+  );
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -29,7 +47,7 @@ function isExpandable(value: unknown): boolean {
 function MetadataEntry({ label, value }: { label: string; value: unknown }) {
   if (isExpandable(value)) {
     return (
-      <AccordionItem title={label}>
+      <AccordionItem title={<TruncatedText text={label} />}>
         <MetadataValue value={value} />
       </AccordionItem>
     );
@@ -37,8 +55,8 @@ function MetadataEntry({ label, value }: { label: string; value: unknown }) {
 
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <span className="truncate text-sm font-medium">{String(value)}</span>
+      <TruncatedText text={label} className="text-muted-foreground text-xs" />
+      <TruncatedText text={String(value)} className="truncate text-sm font-medium" />
     </div>
   );
 }
@@ -72,7 +90,7 @@ function MetadataValue({ value }: { value: unknown }) {
 
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="truncate text-sm font-medium">{String(value)}</span>
+      <TruncatedText text={String(value)} className="truncate text-sm font-medium" />
     </div>
   );
 }
